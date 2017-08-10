@@ -16,7 +16,11 @@ func Factory(conf *logical.BackendConfig) (logical.Backend, error) {
 func Backend() *backend {
 	var b backend
 	b.Backend = &framework.Backend{
-		Help:        "GPG plugin",
+		Help: "GPG plugin",
+		Paths: []*framework.Path{
+			pathKeys(&b),
+			pathListKeys(&b),
+		},
 		Secrets:     []*framework.Secret{},
 		BackendType: logical.TypeLogical,
 	}

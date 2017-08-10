@@ -25,6 +25,7 @@ func pathKeys(b *backend) *framework.Path {
 		},
 		Callbacks: map[logical.Operation]framework.OperationFunc{
 			logical.UpdateOperation: b.pathKeyCreate,
+			logical.DeleteOperation: b.pathKeyDelete,
 		},
 	}
 }
@@ -36,6 +37,14 @@ func (b *backend) pathKeyCreate(req *logical.Request, data *framework.FieldData)
 		return nil, err
 	}
 	if err := req.Storage.Put(entry); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (b *backend) pathKeyDelete(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	err := req.Storage.Delete("key/" + data.Get("name").(string))
+	if err != nil {
 		return nil, err
 	}
 	return nil, nil

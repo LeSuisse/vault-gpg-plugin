@@ -20,6 +20,7 @@ func Backend() *backend {
 		Paths: []*framework.Path{
 			pathKeys(&b),
 			pathListKeys(&b),
+			pathSign(&b),
 		},
 		Secrets:     []*framework.Secret{},
 		BackendType: logical.TypeLogical,

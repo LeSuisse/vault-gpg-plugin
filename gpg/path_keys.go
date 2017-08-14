@@ -29,15 +29,15 @@ func pathKeys(b *backend) *framework.Path {
 			},
 			"real_name": {
 				Type:        framework.TypeString,
-				Description: "The real name of the identity associated with the generated GPG key.",
+				Description: "The real name of the identity associated with the generated GPG key. Must not contain any of \"()<>\x00\".",
 			},
 			"email": {
 				Type:        framework.TypeString,
-				Description: "The email of the identity associated with the generated GPG key.",
+				Description: "The email of the identity associated with the generated GPG key. Must not contain any of \"()<>\x00\".",
 			},
 			"comment": {
 				Type:        framework.TypeString,
-				Description: "The comment of the identity associated with the generated GPG key.",
+				Description: "The comment of the identity associated with the generated GPG key. Must not contain any of \"()<>\x00\".",
 			},
 		},
 		Callbacks: map[logical.Operation]framework.OperationFunc{

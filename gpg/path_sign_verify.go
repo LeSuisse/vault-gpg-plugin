@@ -64,7 +64,7 @@ func (b *backend) pathSignWrite(req *logical.Request, data *framework.FieldData)
 		return nil, err
 	}
 	if entity == nil {
-		return nil, nil
+		return logical.ErrorResponse("key not found"), logical.ErrInvalidRequest
 	}
 
 	message := bytes.NewReader(input)
@@ -93,7 +93,7 @@ func (b *backend) pathVerifyWrite(req *logical.Request, data *framework.FieldDat
 		return nil, err
 	}
 	if keyEntry == nil {
-		return nil, nil
+		return logical.ErrorResponse("key not found"), logical.ErrInvalidRequest
 	}
 
 	r := bytes.NewReader(keyEntry.SerializedKey)

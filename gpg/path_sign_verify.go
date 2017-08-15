@@ -40,6 +40,11 @@ func pathSign(b *backend) *framework.Path {
 
 Defaults to "sha2-256".`,
 			},
+			"format": {
+				Type:        framework.TypeString,
+				Default:     "ascii-armor",
+				Description: `Encoding format to use. Can be "ascii-armor" or "base64". Defaults to "ascii-armor".`,
+			},
 		},
 		Callbacks: map[logical.Operation]framework.OperationFunc{
 			logical.UpdateOperation: b.pathSignWrite,
@@ -63,7 +68,12 @@ func pathVerify(b *backend) *framework.Path {
 			},
 			"signature": {
 				Type:        framework.TypeString,
-				Description: "The ASCII-armored signature",
+				Description: "The signature",
+			},
+			"format": {
+				Type:        framework.TypeString,
+				Default:     "ascii-armor",
+				Description: `Encoding format the signature use. Can be "ascii-armor" or "base64". Defaults to "ascii-armor".`,
 			},
 		},
 		Callbacks: map[logical.Operation]framework.OperationFunc{
@@ -100,6 +110,14 @@ func (b *backend) pathSignWrite(req *logical.Request, data *framework.FieldData)
 		return logical.ErrorResponse(fmt.Sprintf("unsupported algorithm %s", algorithm)), nil
 	}
 
+	format := data.Get("format").(string)
+	switch format {
+	case "ascii-armor":
+	case "base64":
+	default:
+		return logical.ErrorResponse(fmt.Sprintf("unsupported encoding format %s; must be \"ascii-armor\" or \"base64\"", format)), nil
+	}
+
 	entity, err := b.entity(req.Storage, data.Get("name").(string))
 	if err != nil {
 		return nil, err
@@ -109,15 +127,28 @@ func (b *backend) pathSignWrite(req *logical.Request, data *framework.FieldData)
 	}
 
 	message := bytes.NewReader(input)
-	var w bytes.Buffer
-	err = openpgp.ArmoredDetachSign(&w, entity, message, &config)
-	if err != nil {
-		return nil, err
+	var signature bytes.Buffer
+	switch format {
+	case "ascii-armor":
+		err = openpgp.ArmoredDetachSign(&signature, entity, message, &config)
+		if err != nil {
+			return nil, err
+		}
+	case "base64":
+		encoder := base64.NewEncoder(base64.StdEncoding, &signature)
+		err = openpgp.DetachSign(encoder, entity, message, &config)
+		if err != nil {
+			return nil, err
+		}
+		err = encoder.Close()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"signature": w.String(),
+			"signature": signature.String(),
 		},
 	}, nil
 }
@@ -127,6 +158,14 @@ func (b *backend) pathVerifyWrite(req *logical.Request, data *framework.FieldDat
 	input, err := base64.StdEncoding.DecodeString(inputB64)
 	if err != nil {
 		return logical.ErrorResponse(fmt.Sprintf("unable to decode input as base64: %s", err)), logical.ErrInvalidRequest
+	}
+
+	format := data.Get("format").(string)
+	switch format {
+	case "ascii-armor":
+	case "base64":
+	default:
+		return logical.ErrorResponse(fmt.Sprintf("unsupported encoding format %s; must be \"ascii-armor\" or \"base64\"", format)), nil
 	}
 
 	keyEntry, err := b.key(req.Storage, data.Get("name").(string))
@@ -143,9 +182,15 @@ func (b *backend) pathVerifyWrite(req *logical.Request, data *framework.FieldDat
 		return nil, err
 	}
 
-	message := bytes.NewReader(input)
 	signature := strings.NewReader(data.Get("signature").(string))
-	_, err = openpgp.CheckArmoredDetachedSignature(keyring, message, signature)
+	message := bytes.NewReader(input)
+	switch format {
+	case "ascii-armor":
+		_, err = openpgp.CheckArmoredDetachedSignature(keyring, message, signature)
+	case "base64":
+		decoder := base64.NewDecoder(base64.StdEncoding, signature)
+		_, err = openpgp.CheckDetachedSignature(keyring, message, decoder)
+	}
 
 	resp := &logical.Response{
 		Data: map[string]interface{}{

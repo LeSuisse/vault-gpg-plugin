@@ -38,8 +38,8 @@ func TestGPG_SignVerify(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	signRequest := func(req *logical.Request, keyName string, errExpected bool) string {
-		req.Path = "sign/" + keyName
+	signRequest := func(req *logical.Request, keyName string, errExpected bool, postpath string) string {
+		req.Path = "sign/" + keyName + postpath
 		response, err := b.HandleRequest(req)
 		if err != nil && !errExpected {
 			t.Fatal(err)
@@ -98,16 +98,38 @@ func TestGPG_SignVerify(t *testing.T) {
 		"input": "dGhlIHF1aWNrIGJyb3duIGZveA==",
 	}
 
-	signature := signRequest(req, "test", false)
+	// Test defaults
+	signature := signRequest(req, "test", false, "")
 	verifyRequest(req, "test", false, true, signature)
 	verifyRequest(req, "test2", false, false, signature)
 
+	// Test algorithm selection in path
+	signature = signRequest(req, "test", false, "/sha2-224")
+	verifyRequest(req, "test", false, true, signature)
+
+	// Test algorithm selection in the data
+	req.Data["algorithm"] = "sha2-224"
+	signature = signRequest(req, "test", false, "")
+	verifyRequest(req, "test", false, true, signature)
+
+	req.Data["algorithm"] = "sha2-384"
+	signature = signRequest(req, "test", false, "")
+	verifyRequest(req, "test", false, true, signature)
+
+	req.Data["algorithm"] = "sha2-512"
+	signature = signRequest(req, "test", false, "")
+	verifyRequest(req, "test", false, true, signature)
+
+	req.Data["algorithm"] = "notexisting"
+	signature = signRequest(req, "test", true, "")
+	delete(req.Data, "algorithm")
+
 	// Test non existent key
-	signRequest(req, "notfound", true)
+	signRequest(req, "notfound", true, "")
 	verifyRequest(req, "notfound", true, false, signature)
 
 	// Test bad input
 	req.Data["input"] = "foobar"
-	signRequest(req, "test", true)
+	signRequest(req, "test", true, "")
 	verifyRequest(req, "test", true, false, signature)
 }

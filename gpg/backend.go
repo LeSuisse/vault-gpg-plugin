@@ -16,7 +16,7 @@ func Factory(conf *logical.BackendConfig) (logical.Backend, error) {
 func Backend() *backend {
 	var b backend
 	b.Backend = &framework.Backend{
-		Help: "GPG plugin",
+		Help: backendHelp,
 		Paths: []*framework.Path{
 			pathKeys(&b),
 			pathListKeys(&b),
@@ -32,3 +32,8 @@ func Backend() *backend {
 type backend struct {
 	*framework.Backend
 }
+
+const backendHelp = `
+The GPG backend handles GPG operations on data in-transit.
+Data sent to the backend are not stored.
+`

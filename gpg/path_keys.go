@@ -16,6 +16,8 @@ func pathListKeys(b *backend) *framework.Path {
 		Callbacks: map[logical.Operation]framework.OperationFunc{
 			logical.ListOperation: b.pathKeyList,
 		},
+		HelpSynopsis:    pathPolicyHelpSyn,
+		HelpDescription: pathPolicyHelpDesc,
 	}
 }
 
@@ -45,6 +47,8 @@ func pathKeys(b *backend) *framework.Path {
 			logical.UpdateOperation: b.pathKeyCreate,
 			logical.DeleteOperation: b.pathKeyDelete,
 		},
+		HelpSynopsis:    pathPolicyHelpSyn,
+		HelpDescription: pathPolicyHelpDesc,
 	}
 }
 
@@ -159,3 +163,10 @@ func (b *backend) pathKeyList(
 type keyEntry struct {
 	SerializedKey []byte
 }
+
+const pathPolicyHelpSyn = "Managed named GPG keys"
+const pathPolicyHelpDesc = `
+This path is used to manage the named GPG keys that are available.
+Doing a write with no value against a new named key will create
+it using a randomly generated key.
+`

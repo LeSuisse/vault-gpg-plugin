@@ -26,6 +26,8 @@ func pathSign(b *backend) *framework.Path {
 		Callbacks: map[logical.Operation]framework.OperationFunc{
 			logical.UpdateOperation: b.pathSignWrite,
 		},
+		HelpSynopsis:    pathSignHelpSyn,
+		HelpDescription: pathSignHelpDesc,
 	}
 }
 
@@ -49,6 +51,8 @@ func pathVerify(b *backend) *framework.Path {
 		Callbacks: map[logical.Operation]framework.OperationFunc{
 			logical.UpdateOperation: b.pathVerifyWrite,
 		},
+		HelpSynopsis:    pathVerifyHelpSyn,
+		HelpDescription: pathVerifyHelpDesc,
 	}
 }
 
@@ -114,3 +118,8 @@ func (b *backend) pathVerifyWrite(req *logical.Request, data *framework.FieldDat
 
 	return resp, nil
 }
+
+const pathSignHelpSyn = "Generate a signature for input data using the named GPG key"
+const pathSignHelpDesc = "Generates a signature of the input data using the named GPG key."
+const pathVerifyHelpSyn = "Verify a signature for input data created using the named GPG key"
+const pathVerifyHelpDesc = "Verifies a signature of the input data using the named GPG key."

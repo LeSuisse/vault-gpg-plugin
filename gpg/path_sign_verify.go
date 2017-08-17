@@ -42,8 +42,8 @@ Defaults to "sha2-256".`,
 			},
 			"format": {
 				Type:        framework.TypeString,
-				Default:     "ascii-armor",
-				Description: `Encoding format to use. Can be "ascii-armor" or "base64". Defaults to "ascii-armor".`,
+				Default:     "base64",
+				Description: `Encoding format to use. Can be "base64" or "ascii-armor". Defaults to "base64".`,
 			},
 		},
 		Callbacks: map[logical.Operation]framework.OperationFunc{
@@ -72,8 +72,8 @@ func pathVerify(b *backend) *framework.Path {
 			},
 			"format": {
 				Type:        framework.TypeString,
-				Default:     "ascii-armor",
-				Description: `Encoding format the signature use. Can be "ascii-armor" or "base64". Defaults to "ascii-armor".`,
+				Default:     "base64",
+				Description: `Encoding format the signature use. Can be "base64" or "ascii-armor". Defaults to "base64".`,
 			},
 		},
 		Callbacks: map[logical.Operation]framework.OperationFunc{
@@ -112,10 +112,10 @@ func (b *backend) pathSignWrite(req *logical.Request, data *framework.FieldData)
 
 	format := data.Get("format").(string)
 	switch format {
-	case "ascii-armor":
 	case "base64":
+	case "ascii-armor":
 	default:
-		return logical.ErrorResponse(fmt.Sprintf("unsupported encoding format %s; must be \"ascii-armor\" or \"base64\"", format)), nil
+		return logical.ErrorResponse(fmt.Sprintf("unsupported encoding format %s; must be \"base64\" or \"ascii-armor\"", format)), nil
 	}
 
 	entity, err := b.entity(req.Storage, data.Get("name").(string))
@@ -162,10 +162,10 @@ func (b *backend) pathVerifyWrite(req *logical.Request, data *framework.FieldDat
 
 	format := data.Get("format").(string)
 	switch format {
-	case "ascii-armor":
 	case "base64":
+	case "ascii-armor":
 	default:
-		return logical.ErrorResponse(fmt.Sprintf("unsupported encoding format %s; must be \"ascii-armor\" or \"base64\"", format)), nil
+		return logical.ErrorResponse(fmt.Sprintf("unsupported encoding format %s; must be \"base64\" or \"ascii-armor\"", format)), nil
 	}
 
 	keyEntry, err := b.key(req.Storage, data.Get("name").(string))
@@ -185,11 +185,11 @@ func (b *backend) pathVerifyWrite(req *logical.Request, data *framework.FieldDat
 	signature := strings.NewReader(data.Get("signature").(string))
 	message := bytes.NewReader(input)
 	switch format {
-	case "ascii-armor":
-		_, err = openpgp.CheckArmoredDetachedSignature(keyring, message, signature)
 	case "base64":
 		decoder := base64.NewDecoder(base64.StdEncoding, signature)
 		_, err = openpgp.CheckDetachedSignature(keyring, message, decoder)
+	case "ascii-armor":
+		_, err = openpgp.CheckArmoredDetachedSignature(keyring, message, signature)
 	}
 
 	resp := &logical.Response{

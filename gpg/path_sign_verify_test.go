@@ -125,14 +125,14 @@ func TestGPG_SignVerify(t *testing.T) {
 	delete(req.Data, "algorithm")
 
 	// Test format selection
-	req.Data["format"] = "base64"
+	req.Data["format"] = "ascii-armor"
 	signature = signRequest(req, "test", false, "")
 	verifyRequest(req, "test", false, true, signature)
 
 	// Test validation format mismatch
-	req.Data["format"] = "base64"
-	signature = signRequest(req, "test", false, "")
 	req.Data["format"] = "ascii-armor"
+	signature = signRequest(req, "test", false, "")
+	req.Data["format"] = "base64"
 	verifyRequest(req, "test", false, false, signature)
 
 	// Test bad format

@@ -41,6 +41,10 @@ func pathKeys(b *backend) *framework.Path {
 				Type:        framework.TypeString,
 				Description: "The comment of the identity associated with the generated GPG key. Must not contain any of \"()<>\x00\".",
 			},
+			"exportable": {
+				Type:        framework.TypeBool,
+				Description: "Enables the key to be exportable.",
+			},
 		},
 		Callbacks: map[logical.Operation]framework.OperationFunc{
 			logical.ReadOperation:   b.pathKeyRead,
@@ -69,15 +73,7 @@ func (b *backend) key(s logical.Storage, name string) (*keyEntry, error) {
 	return &result, nil
 }
 
-func (b *backend) entity(s logical.Storage, name string) (*openpgp.Entity, error) {
-	entry, err := b.key(s, name)
-	if err != nil {
-		return nil, err
-	}
-	if entry == nil {
-		return nil, nil
-	}
-
+func (b *backend) entity(entry *keyEntry) (*openpgp.Entity, error) {
 	r := bytes.NewReader(entry.SerializedKey)
 	el, err := openpgp.ReadKeyRing(r)
 	if err != nil {
@@ -91,12 +87,16 @@ func (b *backend) entity(s logical.Storage, name string) (*openpgp.Entity, error
 }
 
 func (b *backend) pathKeyRead(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	entity, err := b.entity(req.Storage, data.Get("name").(string))
+	entry, err := b.key(req.Storage, data.Get("name").(string))
 	if err != nil {
 		return nil, err
 	}
-	if entity == nil {
+	if entry == nil {
 		return nil, nil
+	}
+	entity, err := b.entity(entry)
+	if err != nil {
+		return nil, err
 	}
 
 	var buf bytes.Buffer
@@ -111,6 +111,7 @@ func (b *backend) pathKeyRead(req *logical.Request, data *framework.FieldData) (
 		Data: map[string]interface{}{
 			"fingerprint": hex.EncodeToString(entity.PrimaryKey.Fingerprint[:]),
 			"public_key":  buf.String(),
+			"exportable":  entry.Exportable,
 		},
 	}, nil
 }
@@ -120,6 +121,7 @@ func (b *backend) pathKeyCreate(req *logical.Request, data *framework.FieldData)
 	realName := data.Get("real_name").(string)
 	email := data.Get("email").(string)
 	comment := data.Get("comment").(string)
+	exportable := data.Get("exportable").(bool)
 
 	entity, err := openpgp.NewEntity(realName, comment, email, nil)
 	if err != nil {
@@ -133,6 +135,7 @@ func (b *backend) pathKeyCreate(req *logical.Request, data *framework.FieldData)
 
 	entry, err := logical.StorageEntryJSON("key/"+name, &keyEntry{
 		SerializedKey: buf.Bytes(),
+		Exportable:    exportable,
 	})
 	if err != nil {
 		return nil, err
@@ -162,6 +165,7 @@ func (b *backend) pathKeyList(
 
 type keyEntry struct {
 	SerializedKey []byte
+	Exportable    bool
 }
 
 const pathPolicyHelpSyn = "Managed named GPG keys"

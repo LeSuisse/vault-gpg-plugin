@@ -118,12 +118,16 @@ func (b *backend) pathSignWrite(req *logical.Request, data *framework.FieldData)
 		return logical.ErrorResponse(fmt.Sprintf("unsupported encoding format %s; must be \"base64\" or \"ascii-armor\"", format)), nil
 	}
 
-	entity, err := b.entity(req.Storage, data.Get("name").(string))
+	entry, err := b.key(req.Storage, data.Get("name").(string))
 	if err != nil {
 		return nil, err
 	}
-	if entity == nil {
+	if entry == nil {
 		return logical.ErrorResponse("key not found"), logical.ErrInvalidRequest
+	}
+	entity, err := b.entity(entry)
+	if err != nil {
+		return nil, err
 	}
 
 	message := bytes.NewReader(input)

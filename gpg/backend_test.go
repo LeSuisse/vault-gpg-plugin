@@ -21,9 +21,10 @@ func TestBackend_CRUD(t *testing.T) {
 	}
 
 	keyData := map[string]interface{}{
-		"real_name": "Vault",
-		"email":     "vault@example.com",
-		"comment":   "Comment",
+		"real_name":  "Vault",
+		"email":      "vault@example.com",
+		"comment":    "Comment",
+		"exportable": true,
 	}
 
 	logicaltest.Test(t, logicaltest.TestCase{

@@ -20,6 +20,7 @@ func Backend() *backend {
 		Paths: []*framework.Path{
 			pathKeys(&b),
 			pathListKeys(&b),
+			pathExportKeys(&b),
 			pathSign(&b),
 			pathVerify(&b),
 		},

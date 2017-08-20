@@ -8,3 +8,9 @@ go:
 matrix:
   allow_failures:
     - go: tip
+
+script:
+  - go test -race -coverprofile=coverage.txt -covermode=atomic -v ./gpg/
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

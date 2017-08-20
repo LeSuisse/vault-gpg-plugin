@@ -76,6 +76,29 @@ func TestGPG_CreateErrorGeneratedKeyWithOnlyPublicKey(t *testing.T) {
 	}
 }
 
+func TestGPG_CreateErrorGeneratedKeyTooSmallKeyBits(t *testing.T) {
+	storage := &logical.InmemStorage{}
+
+	b := Backend()
+
+	req := &logical.Request{
+		Storage:   storage,
+		Operation: logical.UpdateOperation,
+		Path:      "keys/test",
+		Data: map[string]interface{}{
+			"key_bits": 1024,
+		},
+	}
+	response, err := b.HandleRequest(req)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !response.IsError() {
+		t.Fatal("Key creation has been accepted but should have denied due to too small key size")
+	}
+}
+
 const gpgPublicKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQENBFmZfJIBCACx2NgAf4rLLx2QKo444ATs3ewJICdy/cYhETxcn5wewdrxQayJ

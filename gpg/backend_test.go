@@ -24,6 +24,7 @@ func TestBackend_CRUD(t *testing.T) {
 		"real_name":  "Vault",
 		"email":      "vault@example.com",
 		"comment":    "Comment",
+		"key_bits":   4096,
 		"exportable": true,
 	}
 
@@ -52,6 +53,7 @@ func TestBackend_CRUDImportedKey(t *testing.T) {
 	keyData := map[string]interface{}{
 		"key":      gpgKey,
 		"generate": false,
+		"key_bits": 2048,
 	}
 
 	logicaltest.Test(t, logicaltest.TestCase{
@@ -158,8 +160,8 @@ func testAccStepReadKey(name string, keyData map[string]interface{}) logicaltest
 			switch {
 			case e.PrivateKey != nil:
 				return fmt.Errorf("private key should not be exported")
-			case bitLength != 2048:
-				return fmt.Errorf("key size should be: %d", 2048)
+			case int(bitLength) != keyData["key_bits"]:
+				return fmt.Errorf("key size should be %d, got %d", keyData["key_bits"], bitLength)
 			case s.Fingerprint != fingerprint:
 				return fmt.Errorf("fingerprint does not match: %s %s", s.Fingerprint, fingerprint)
 			case len(e.Identities) != 1:

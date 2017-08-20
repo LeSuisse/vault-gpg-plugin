@@ -10,6 +10,7 @@ import (
 	"golang.org/x/crypto/openpgp/armor"
 	"io"
 	"strings"
+	"golang.org/x/crypto/openpgp/packet"
 )
 
 func pathListKeys(b *backend) *framework.Path {
@@ -42,6 +43,11 @@ func pathKeys(b *backend) *framework.Path {
 			"comment": {
 				Type:        framework.TypeString,
 				Description: "The comment of the identity associated with the generated GPG key. Must not contain any of \"()<>\x00\". Only used if generate is false.",
+			},
+			"key_bits": {
+				Type:        framework.TypeInt,
+				Default:     2048,
+				Description: "The number of bits to use. Only used if generate is false.",
 			},
 			"key": {
 				Type:        framework.TypeString,
@@ -170,6 +176,7 @@ func (b *backend) pathKeyCreate(req *logical.Request, data *framework.FieldData)
 	realName := data.Get("real_name").(string)
 	email := data.Get("email").(string)
 	comment := data.Get("comment").(string)
+	keyBits := data.Get("key_bits").(int)
 	exportable := data.Get("exportable").(bool)
 	generate := data.Get("generate").(bool)
 	key := data.Get("key").(string)
@@ -177,7 +184,13 @@ func (b *backend) pathKeyCreate(req *logical.Request, data *framework.FieldData)
 	var buf bytes.Buffer
 	switch generate {
 	case true:
-		entity, err := openpgp.NewEntity(realName, comment, email, nil)
+		if keyBits < 2048 {
+			return logical.ErrorResponse("Keys < 2048 bits are unsafe and not supported"), nil
+		}
+		config := packet.Config{
+			RSABits: keyBits,
+		}
+		entity, err := openpgp.NewEntity(realName, comment, email, &config)
 		if err != nil {
 			return nil, err
 		}

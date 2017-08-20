@@ -146,7 +146,7 @@ func testAccStepReadKey(name string, keyData map[string]interface{}) logicaltest
 
 			nb := len(el)
 			if nb != 1 {
-				fmt.Errorf("only 1 entity is expected, %d found", nb)
+				return fmt.Errorf("1 entity is expected, %d found", nb)
 			}
 
 			e := el[0]

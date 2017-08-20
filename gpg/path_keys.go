@@ -90,9 +90,6 @@ func (b *backend) entity(entry *keyEntry) (*openpgp.Entity, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(el) == 0 {
-		return nil, fmt.Errorf("PGP key does not contain an entity")
-	}
 
 	return el[0], nil
 }

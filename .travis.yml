@@ -10,6 +10,7 @@ matrix:
     - go: tip
 
 script:
+  - go vet ./...
   - go test -race -coverprofile=coverage.txt -covermode=atomic -v ./gpg/
 
 after_success:

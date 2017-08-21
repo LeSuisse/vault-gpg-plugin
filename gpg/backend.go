@@ -23,6 +23,7 @@ func Backend() *backend {
 			pathExportKeys(&b),
 			pathSign(&b),
 			pathVerify(&b),
+			pathDecrypt(&b),
 		},
 		Secrets:     []*framework.Secret{},
 		BackendType: logical.TypeLogical,

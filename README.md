@@ -320,7 +320,7 @@ This endpoint decrypts the provided ciphertext using the named GPG key. For now,
 | :------- | :--------------------------- | :--------------------- |
 | `POST`   | `/gpg/decrypt/:name`         | `200 application/json` |
 
-### Parameters
+#### Parameters
 
 - `name` `(string: <required>)` – Specifies the name of the key to decrypt against. This is specified as part of the URL.
 
@@ -332,7 +332,7 @@ This endpoint decrypts the provided ciphertext using the named GPG key. For now,
 - `ciphertext` `(string: <required>)` – Specifies the ciphertext to decrypt.
 
 
-### Sample Payload
+#### Sample Payload
 
 ```json
 {
@@ -341,7 +341,7 @@ This endpoint decrypts the provided ciphertext using the named GPG key. For now,
 }
 ```
 
-### Sample Request
+#### Sample Request
 
 ```
 $ curl \
@@ -351,7 +351,7 @@ $ curl \
     https://vault.example.com/v1/gpg/decrypt/my-key
 ```
 
-### Sample Response
+#### Sample Response
 
 ```json
 {

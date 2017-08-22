@@ -23,7 +23,7 @@ func TestGPG_Decrypt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	decrypt := func(keyName, ciphertext, format, expected string) {
+	decrypt := func(keyName, ciphertext, format, signerKey, expected string) {
 		reqDecrypt := &logical.Request{
 			Storage:   storage,
 			Operation: logical.UpdateOperation,
@@ -31,6 +31,7 @@ func TestGPG_Decrypt(t *testing.T) {
 			Data: map[string]interface{}{
 				"ciphertext": ciphertext,
 				"format":     format,
+				"signer_key": signerKey,
 			},
 		}
 
@@ -55,8 +56,9 @@ func TestGPG_Decrypt(t *testing.T) {
 	}
 
 	expected := "QWxwYWNhcwo="
-	decrypt("test", encryptedMessageAsciiArmored, "ascii-armor", expected)
-	decrypt("test", encryptedMessageBase64Encoded, "base64", expected)
+	decrypt("test", encryptedMessageAsciiArmored, "ascii-armor", "", expected)
+	decrypt("test", encryptedMessageBase64Encoded, "base64", "", expected)
+	decrypt("test", encryptedAndSignedMessageAsciiArmored, "ascii-armor", publicSignerKey, expected)
 }
 
 func TestGPG_DecryptError(t *testing.T) {
@@ -90,7 +92,7 @@ func TestGPG_DecryptError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	decryptMustFail := func(keyName, ciphertext, format string) {
+	decryptMustFail := func(keyName, ciphertext, format, signerKey string) {
 		reqDecrypt := &logical.Request{
 			Storage:   storage,
 			Operation: logical.UpdateOperation,
@@ -98,24 +100,37 @@ func TestGPG_DecryptError(t *testing.T) {
 			Data: map[string]interface{}{
 				"ciphertext": ciphertext,
 				"format":     format,
+				"signer_key": signerKey,
 			},
 		}
 
 		resp, _ := b.HandleRequest(reqDecrypt)
 		if !resp.IsError() {
-			t.Fatalf("expected to fail, keyname: %s, format: %s, cipertext: %s", keyName, format, ciphertext)
+			t.Fatalf(
+				"expected to fail, keyname: %s, format: %s, cipertext: %s, signer key %s",
+				keyName, format, ciphertext, signerKey)
 		}
 	}
 
-	decryptMustFail("doNotExist", encryptedMessageAsciiArmored, "ascii-armor")
-	decryptMustFail("test", encryptedMessageAsciiArmored, "invalidFormat")
+	decryptMustFail("doNotExist", encryptedMessageAsciiArmored, "ascii-armor", "")
+	decryptMustFail("test", encryptedMessageAsciiArmored, "invalidFormat", "")
 
 	// Wrong key for the message
-	decryptMustFail("testGenerated", encryptedMessageAsciiArmored, "ascii-armored")
+	decryptMustFail("testGenerated", encryptedMessageAsciiArmored, "ascii-armor", "")
 
 	// Wrongly encoded
-	decryptMustFail("test", "Not ASCII armored", "ascii-armor")
-	decryptMustFail("test", "Not base64 encoded", "base64")
+	decryptMustFail("test", "Not ASCII armored", "ascii-armor", "")
+	decryptMustFail("test", "Not base64 encoded", "base64", "")
+
+	// Signer key is not properly ASCII-armored
+	decryptMustFail("test", encryptedMessageAsciiArmored, "ascii-armor", "Signer key is not ASCII armored")
+
+	// Message is not signed
+	decryptMustFail("test", encryptedMessageAsciiArmored, "ascii-armor", publicSignerKey)
+
+	// Message is signed but signature does not match the signer key
+	decryptMustFail("test", encryptedAndSignedMessageAsciiArmored, "ascii-armor", privateDecryptKey)
+
 }
 
 const privateDecryptKey = `-----BEGIN PGP PRIVATE KEY BLOCK-----
@@ -177,6 +192,38 @@ UWauhQ==
 =2Rz1
 -----END PGP PRIVATE KEY BLOCK-----`
 
+const publicSignerKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mQENBFmcjO0BCACgAjFrcoCmtIjMHvNc12wfZqOVxs2hvk2FD5wFtupVOTmBrHzU
+Jry1wb6J6azrHlGXC3lz5tpC2AczhjNSOXBKMR3VxPfzVJwS3aHC6+DrTsmIJYYD
+kDABCiyD1Br7W5wMSa4KCK8/YSsopD7j4ffSgjijZ5ytFmeYeMDzpVP3DO+uo3Mo
+TyU4/DsW1jE78IJKJ/10ZvtP0ZLT9UXBPqwo4kGFQTjoTXf++0y3qXQ5eGwe2AbY
+K7z6fyMp7q8HrJD3bor1uiV2ookCm0576twI90gTsKXU9SkGT6vKweqbRfCjpaSq
+8K+IVm7Hfjm6kL18f+SzJ0hSvJt1FtICZzTXABEBAAG0K1ZhdWx0IFNpZ25lciBL
+ZXkgPHZhdWx0LXNpZ25lckBleGFtcGxlLmNvbT6JAVQEEwEKAD4WIQQ1dVo1ZrPi
+hI+ct5sP4181AmkrmwUCWZyM7QIbAwUJA8JnAAULCQgHAwUVCgkICwUWAgMBAAIe
+AQIXgAAKCRAP4181AmkrmyhLB/4+8ffovwEnlF0EK0lOrn0xYLiKI3pOZuHw9y9F
+qb1ViWSH3E8raLnjt970YMnpirrzI12qe1Pexzr6eYw9kuZRAu8xP2cryWviauZe
+RiiP3MDRe4MT9f05eZAoaL1wEDbgAbZhbGmlhwc+CBo3Sue03rXVZZc2+pGpe6o5
+K1mkDXuvekXsAmrQGo8PzMdJe18xido7hT1YnVntVrA1mWLBTij5sw4yAwVxuUN/
+CH1bmOP6Y+zef7/pkgSFS5v+XRibKrvlOUHgvKC4J/ruFc7IOK55mvaRzgliQAg8
+qwaTlakao9PnWmcKPXKsosFI01CCmE3RDdEXM62y3rlboAY0uQENBFmcjO0BCAC6
+HyHdPQWS0+pGcBhGipm5GJmyyrwQuPiS5/gPecK+F9QysnIX6xFkJM13U/4J2p7t
+vUPvSHWs4/Qtpi8w3n3Yddm17qGZUHIb4QJsc8hUasTtjuDHOYpgEd51ujTWJ1k5
+O39NDso1cRihXUPgI4GzhL6l1afLcqp1Y5YQyqEFLaz/IZMMlzt0zhAJLV0oyNtQ
+Bumm3szcUOyRpkgGvtpFJgcSxb2tzZosUwxykct9ALQP/Q+WLhXqeo9bv5ziJtQm
+y9kFGDhTwVaKXDOHYypKSz1R18MMcxHHQZjbBVnSBUaPCXuMx651F5pQF0tsbEaQ
+6K1WiVowFpm0w9Tp/t8VABEBAAGJATwEGAEKACYWIQQ1dVo1ZrPihI+ct5sP4181
+AmkrmwUCWZyM7QIbDAUJA8JnAAAKCRAP4181Amkrm//pB/wK4FjGPA9kHQ6TJRW/
+Sv6Mup9Cw3b7eOOMTGasKkk6w3kal/jCyCsfA0SbceQUQb06pOMTEzht545qiUJH
++T8/7A8/ak7GvLOTYLbig5qFNHWmoxB0ychrsc3siVtqSsrm9FhuY2O4475XODnB
+FR1GNuxuvH8wpVI/viJdDluExX1ltWI6L5xEk/1CatcAKhc3yx9ggz/n7qrPh1iV
+FWxBhYvEEvQaLU8Y7ALAd/f5+iFioSbW1hoaZDXtWvXuR70piZAsVCCkf+hZc6am
+eccF2zPehP6Jv+0eXHpC9NmaZH6A1zAB2cvFY8x6PQ6JOjqUEfmEJ3I2+eA8ru6s
+Jt9I
+=+eRe
+-----END PGP PUBLIC KEY BLOCK-----`
+
 const encryptedMessageAsciiArmored = `-----BEGIN PGP MESSAGE-----
 
 hQEMA923ECy/uCBhAQf8DLagsnoLuM4AyKiTyvZ7uSQTkmOkwXwn1WWsxoKJkzdI
@@ -196,3 +243,22 @@ WTRzRP4nEclUUhWKHDlEd7/1bG/1z3Px3JWXdnSCHYl3AqdFkS4bW26wpO+gcCTbiixo+JE93QoG
 u0pqEkvJwHnIyKThFW5N6OCYjB2pFpVLER7x6RGjuX6tRRYZayzT4sVKGj0Efp6T32EEVPURiJSn
 elpIPEd8+8i/7X0Co6iNFEyucgxhaxN+ujqSxx+6ZIFV4UKC0LFgR2iF99JDAQ6ofxvUtoxMGKON
 WVtrVMjN8Db3KXQ5rt/tyKbTVGXQot6ocSZ2Ae+rnSTiq0boGrWDnuYZHawc16iJhbcP68ERgg==`
+
+const encryptedAndSignedMessageAsciiArmored = `-----BEGIN PGP MESSAGE-----
+
+hQEMA923ECy/uCBhAQf/fWXnkS/aq982Df+9NjqYna9c8aAcQRuhVi0jc0rasRRj
+owPqag1s+0PeaMD07e02+RvWRhDzXnd9OdR4Tm+91e2DFhFQ16OnLf5C/EQhaNk4
+LVwKtGAP9IiZJVx+NZNJeadGU7QEFDjnZdLLu7Hh6sTqs6RmopjAucNWNIwVJjn0
++ehlDwfSHOf3aV8ET0hBgIasSgWNUQ8gRrzMdDffZuqovHIOPTpRkyeD1uNFhP5j
+TASsDvRPA4YXsqgaXkgpIKmegYWpRGlJAhqB7TzeY+E/+pvqhLSUBUNN+CZpfots
+8Xx9furYvCh2ajyKrOgdJcMiU1XUwCqJbPlqcWMyo9LAyQFdkjGNt/dZZfUXpph7
+MErulIRedVYhgGa12bLosCeG92n8qAhAoc8tVZxSkJBfwaWOoo8i049buCRDGAIG
+AwB3LiMVTe2gfhpidBgPibGcXD5RxIZcyWDKQLAhKe2Ig9+pRSgyZh+GuNkzuyhf
+mxPM4WpLMXD/OqAT12jlrCxoDsttoLIvLmGItDjDnO/+pPiw/emMTAsfQPk/VxOz
+ASACh6kHAdV/WVUwzDouxIbbEu49vyWWed1ls/8MRaXRwTU7AQGDN/B0BLe99bzZ
+Ya1/VsAG4nz6eH2duU6nUI03tNuRjXAdeR2GKOdz8pQYVAcr1YTg1XQ4r4X5HAId
+HfP1TjFTrCTztKvpk6D7R++D32zlwjTqyqIrYXJvcifev7zd7tCRGk7D+qvIdrF2
+Ubm5BjtILbgkwpbSWBghW+lx5POhVt9mFax+Su9fZkUrPj3UGnHH2jeFB4EwHtkI
+TSpU+MkEN1+Gdp+peD7lHSgfOxvpfJt4qA8ic89DSWF1YYK8a8CkiiqnMQ==
+=Bepf
+-----END PGP MESSAGE-----`

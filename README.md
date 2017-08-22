@@ -5,7 +5,7 @@ This plugin handles GPG operations on data in-transit in a similar fashion to wh
 [transit secret backend](https://www.vaultproject.io/docs/secrets/transit/index.html) proposes.
 Data sent to the backend are not stored.
 
-As of today, the backend only supports signing and verifying data.
+As of today, the backend does not support encrypting data.
 
 This backend have similar use cases with the [transit secret backend](https://www.vaultproject.io/docs/secrets/transit/index.html)
 and the latter should be preferred if do not need to interact with existing tools that are only GPG-aware.
@@ -314,7 +314,7 @@ $ curl \
 
 ### Decrypt data
 
-This endpoint decrypts the provided ciphertext using the named GPG key. For now, message's signature is not verified.
+This endpoint decrypts the provided ciphertext using the named GPG key.
 
 | Method   | Path                         | Produces               |
 | :------- | :--------------------------- | :--------------------- |
@@ -330,6 +330,8 @@ This endpoint decrypts the provided ciphertext using the named GPG key. For now,
     - `ascii-armor`
 
 - `ciphertext` `(string: <required>)` – Specifies the ciphertext to decrypt.
+
+- `signer_key` `(string: "")` – Specifies the GPG key ASCII-armored of the signer. If present, the ciphertext must be signed and the signature valid otherwise the decryption fail.
 
 
 #### Sample Payload

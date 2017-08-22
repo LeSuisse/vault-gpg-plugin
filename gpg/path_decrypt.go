@@ -29,6 +29,10 @@ func pathDecrypt(b *backend) *framework.Path {
 				Default:     "base64",
 				Description: `Encoding format the ciphertext uses. Can be "base64" or "ascii-armor". Defaults to "base64".`,
 			},
+			"signer_key": {
+				Type:        framework.TypeString,
+				Description: "The ASCII-armored GPG key of the signer of the ciphertext. If present, the signature must be valid.",
+			},
 		},
 
 		Callbacks: map[logical.Operation]framework.OperationFunc{
@@ -63,6 +67,15 @@ func (b *backend) pathDecryptWrite(req *logical.Request, data *framework.FieldDa
 		return nil, err
 	}
 
+	signerKey := data.Get("signer_key").(string)
+	if signerKey != "" {
+		el, err := openpgp.ReadArmoredKeyRing(strings.NewReader(signerKey))
+		if err != nil {
+			return logical.ErrorResponse(err.Error()), logical.ErrInvalidRequest
+		}
+		keyring = append(keyring, el[0])
+	}
+
 	ciphertextEncoded := strings.NewReader(data.Get("ciphertext").(string))
 	var ciphertextDecoder io.Reader
 	switch format {
@@ -88,6 +101,10 @@ func (b *backend) pathDecryptWrite(req *logical.Request, data *framework.FieldDa
 	}
 	if err = w.Close(); err != nil {
 		return nil, err
+	}
+
+	if signerKey != "" && (!md.IsSigned || md.SignedBy == nil || md.SignatureError != nil) {
+		return logical.ErrorResponse("Signature is invalid or not present"), nil
 	}
 
 	return &logical.Response{

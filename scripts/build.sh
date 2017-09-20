@@ -18,6 +18,7 @@ do
     osarch=$(basename "$platform")
 
     pushd "$platform" >/dev/null 2>&1
+    sha256sum * > "$osarch".sha256sum
     zip ../"$osarch".zip ./*
     popd >/dev/null 2>&1
 done <   <(find ./pkg -mindepth 1 -maxdepth 1 -type d -print0)

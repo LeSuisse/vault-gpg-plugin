@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/vault/logical/framework"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
+	"golang.org/x/crypto/openpgp/packet"
 	"io"
 	"strings"
-	"golang.org/x/crypto/openpgp/packet"
 )
 
 func pathListKeys(b *backend) *framework.Path {

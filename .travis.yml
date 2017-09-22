@@ -14,6 +14,7 @@ install:
   - dep ensure
 
 script:
+  - diff -u <(echo -n) <(gofmt -d -s *.go gpg/)
   - go vet ./...
   - go test -race -coverprofile=coverage.txt -covermode=atomic -v ./gpg/
 

@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/vault/logical/framework"
 )
 
+// Factory gives a configured logical.Backend for the GPG plugin
 func Factory(conf *logical.BackendConfig) (logical.Backend, error) {
 	b := Backend()
 	if err := b.Setup(conf); err != nil {
@@ -13,6 +14,7 @@ func Factory(conf *logical.BackendConfig) (logical.Backend, error) {
 	return b, nil
 }
 
+// Backend returns an instance of the backend for the GPG plugin
 func Backend() *backend {
 	var b backend
 	b.Backend = &framework.Backend{

@@ -136,8 +136,8 @@
 [[projects]]
   name = "github.com/hashicorp/vault"
   packages = ["api","audit","builtin/logical/database/dbplugin","helper/builtinplugins","helper/certutil","helper/compressutil","helper/consts","helper/errutil","helper/forwarding","helper/jsonutil","helper/locksutil","helper/logformat","helper/mlock","helper/parseutil","helper/pgpkeys","helper/pluginutil","helper/policyutil","helper/reload","helper/salt","helper/strutil","helper/tlsutil","helper/wrapping","helper/xor","http","logical","logical/framework","logical/plugin","logical/testing","physical","physical/inmem","plugins","plugins/database/cassandra","plugins/database/hana","plugins/database/mongodb","plugins/database/mssql","plugins/database/mysql","plugins/database/postgresql","plugins/helper/database/connutil","plugins/helper/database/credsutil","plugins/helper/database/dbutil","shamir","vault","version"]
-  revision = "9afe7330e06e486ee326621624f2077d88bc9511"
-  version = "v0.8.2"
+  revision = "6b29fb2b7f70ed538ee2b3c057335d706b6d4e36"
+  version = "v0.8.3"
 
 [[projects]]
   branch = "master"
@@ -280,6 +280,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "bfa1eb041def0fb31569bd734f0df2e2647060b6e852ed01a8f98f8f24334e2e"
+  inputs-digest = "121f44245e829393ca88fb6d8244baa0d31e4c26443df3328190d6dc45ffddce"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -146,11 +146,13 @@ $ curl \
 
 #### Sample response
 
+```json
 {
   "data": {
     "keys": ["foo", "bar"]
   }
 }
+```
 
 ### Delete key
 

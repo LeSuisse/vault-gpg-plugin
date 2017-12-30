@@ -47,7 +47,7 @@ func pathKeys(b *backend) *framework.Path {
 			"key_bits": {
 				Type:        framework.TypeInt,
 				Default:     2048,
-				Description: "The number of bits to use. Only used if generate is false.",
+				Description: "The number of bits to use. Only used if generate is true.",
 			},
 			"key": {
 				Type:        framework.TypeString,

@@ -28,7 +28,11 @@ func Backend() *backend {
 			pathVerify(&b),
 			pathDecrypt(&b),
 		},
-		PathsSpecial: &logical.Paths{},
+		PathsSpecial: &logical.Paths{
+			SealWrapStorage: []string{
+				"key/",
+			},
+		},
 		Secrets:      []*framework.Secret{},
 		BackendType:  logical.TypeLogical,
 	}

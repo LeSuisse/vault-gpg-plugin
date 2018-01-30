@@ -33,8 +33,8 @@ func Backend() *backend {
 				"key/",
 			},
 		},
-		Secrets:      []*framework.Secret{},
-		BackendType:  logical.TypeLogical,
+		Secrets:     []*framework.Secret{},
+		BackendType: logical.TypeLogical,
 	}
 	return &b
 }

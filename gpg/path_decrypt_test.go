@@ -1,6 +1,7 @@
 package gpg
 
 import (
+	"context"
 	"github.com/hashicorp/vault/logical"
 	"testing"
 )
@@ -18,7 +19,7 @@ func TestGPG_Decrypt(t *testing.T) {
 			"key":      privateDecryptKey,
 		},
 	}
-	_, err := b.HandleRequest(req)
+	_, err := b.HandleRequest(context.Background(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +36,7 @@ func TestGPG_Decrypt(t *testing.T) {
 			},
 		}
 
-		resp, err := b.HandleRequest(reqDecrypt)
+		resp, err := b.HandleRequest(context.Background(), reqDecrypt)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -73,7 +74,7 @@ func TestGPG_DecryptError(t *testing.T) {
 			"real_name": "Vault GPG test",
 		},
 	}
-	_, err := b.HandleRequest(req)
+	_, err := b.HandleRequest(context.Background(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +88,7 @@ func TestGPG_DecryptError(t *testing.T) {
 			"key":      privateDecryptKey,
 		},
 	}
-	_, err = b.HandleRequest(req)
+	_, err = b.HandleRequest(context.Background(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +105,7 @@ func TestGPG_DecryptError(t *testing.T) {
 			},
 		}
 
-		resp, _ := b.HandleRequest(reqDecrypt)
+		resp, _ := b.HandleRequest(context.Background(), reqDecrypt)
 		if !resp.IsError() {
 			t.Fatalf(
 				"expected to fail, keyname: %s, format: %s, cipertext: %s, signer key %s",

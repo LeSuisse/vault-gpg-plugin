@@ -2,6 +2,7 @@ package gpg
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"github.com/hashicorp/vault/logical"
@@ -44,7 +45,7 @@ func pathDecrypt(b *backend) *framework.Path {
 	}
 }
 
-func (b *backend) pathDecryptWrite(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+func (b *backend) pathDecryptWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	format := data.Get("format").(string)
 	switch format {
 	case "base64":
@@ -53,7 +54,7 @@ func (b *backend) pathDecryptWrite(req *logical.Request, data *framework.FieldDa
 		return logical.ErrorResponse(fmt.Sprintf("unsupported encoding format %s; must be \"base64\" or \"ascii-armor\"", format)), nil
 	}
 
-	keyEntry, err := b.key(req.Storage, data.Get("name").(string))
+	keyEntry, err := b.key(ctx, req.Storage, data.Get("name").(string))
 	if err != nil {
 		return nil, err
 	}

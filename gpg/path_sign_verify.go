@@ -2,6 +2,7 @@ package gpg
 
 import (
 	"bytes"
+	"context"
 	"crypto"
 	"encoding/base64"
 	"fmt"
@@ -84,7 +85,7 @@ func pathVerify(b *backend) *framework.Path {
 	}
 }
 
-func (b *backend) pathSignWrite(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+func (b *backend) pathSignWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	inputB64 := data.Get("input").(string)
 	input, err := base64.StdEncoding.DecodeString(inputB64)
 	if err != nil {
@@ -118,7 +119,7 @@ func (b *backend) pathSignWrite(req *logical.Request, data *framework.FieldData)
 		return logical.ErrorResponse(fmt.Sprintf("unsupported encoding format %s; must be \"base64\" or \"ascii-armor\"", format)), nil
 	}
 
-	entry, err := b.key(req.Storage, data.Get("name").(string))
+	entry, err := b.key(ctx, req.Storage, data.Get("name").(string))
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +158,7 @@ func (b *backend) pathSignWrite(req *logical.Request, data *framework.FieldData)
 	}, nil
 }
 
-func (b *backend) pathVerifyWrite(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+func (b *backend) pathVerifyWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	inputB64 := data.Get("input").(string)
 	input, err := base64.StdEncoding.DecodeString(inputB64)
 	if err != nil {
@@ -172,7 +173,7 @@ func (b *backend) pathVerifyWrite(req *logical.Request, data *framework.FieldDat
 		return logical.ErrorResponse(fmt.Sprintf("unsupported encoding format %s; must be \"base64\" or \"ascii-armor\"", format)), nil
 	}
 
-	keyEntry, err := b.key(req.Storage, data.Get("name").(string))
+	keyEntry, err := b.key(ctx, req.Storage, data.Get("name").(string))
 	if err != nil {
 		return nil, err
 	}

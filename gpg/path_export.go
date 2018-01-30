@@ -2,6 +2,7 @@ package gpg
 
 import (
 	"bytes"
+	"context"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
 	"golang.org/x/crypto/openpgp"
@@ -25,9 +26,9 @@ func pathExportKeys(b *backend) *framework.Path {
 	}
 }
 
-func (b *backend) pathExportKeyRead(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+func (b *backend) pathExportKeyRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	name := data.Get("name").(string)
-	entry, err := b.key(req.Storage, name)
+	entry, err := b.key(ctx, req.Storage, name)
 	if err != nil {
 		return nil, err
 	}

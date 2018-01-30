@@ -1,6 +1,7 @@
 package gpg
 
 import (
+	"context"
 	"github.com/hashicorp/vault/logical"
 	"testing"
 )
@@ -18,7 +19,7 @@ func TestGPG_CreateNotGeneratedKeyWithoutKeyError(t *testing.T) {
 			"generate": false,
 		},
 	}
-	response, err := b.HandleRequest(req)
+	response, err := b.HandleRequest(context.Background(), req)
 
 	if err != nil {
 		t.Fatal(err)
@@ -42,7 +43,7 @@ func TestGPG_CreateErrorGeneratedKeyWithInvalidKey(t *testing.T) {
 			"key":      "Not properly ascii-armored key",
 		},
 	}
-	response, err := b.HandleRequest(req)
+	response, err := b.HandleRequest(context.Background(), req)
 
 	if err != nil {
 		t.Fatal(err)
@@ -66,7 +67,7 @@ func TestGPG_CreateErrorGeneratedKeyWithOnlyPublicKey(t *testing.T) {
 			"key":      gpgPublicKey,
 		},
 	}
-	response, err := b.HandleRequest(req)
+	response, err := b.HandleRequest(context.Background(), req)
 
 	if err != nil {
 		t.Fatal(err)
@@ -89,7 +90,7 @@ func TestGPG_CreateErrorGeneratedKeyTooSmallKeyBits(t *testing.T) {
 			"key_bits": 1024,
 		},
 	}
-	response, err := b.HandleRequest(req)
+	response, err := b.HandleRequest(context.Background(), req)
 
 	if err != nil {
 		t.Fatal(err)

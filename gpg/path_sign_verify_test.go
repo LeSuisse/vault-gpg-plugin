@@ -1,6 +1,7 @@
 package gpg
 
 import (
+	"context"
 	"github.com/hashicorp/vault/logical"
 	"testing"
 )
@@ -29,18 +30,18 @@ func TestGPG_SignVerify(t *testing.T) {
 			"email":     "vault@example.com",
 		},
 	}
-	_, err := b.HandleRequest(req)
+	_, err := b.HandleRequest(context.Background(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = b.HandleRequest(req2)
+	_, err = b.HandleRequest(context.Background(), req2)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	signRequest := func(req *logical.Request, keyName string, errExpected bool, postpath string) string {
 		req.Path = "sign/" + keyName + postpath
-		response, err := b.HandleRequest(req)
+		response, err := b.HandleRequest(context.Background(), req)
 		if err != nil && !errExpected {
 			t.Fatal(err)
 		}
@@ -66,7 +67,7 @@ func TestGPG_SignVerify(t *testing.T) {
 	verifyRequest := func(req *logical.Request, keyName string, errExpected, validSignature bool, signature string) {
 		req.Path = "verify/" + keyName
 		req.Data["signature"] = signature
-		response, err := b.HandleRequest(req)
+		response, err := b.HandleRequest(context.Background(), req)
 		if err != nil && !errExpected {
 			t.Fatalf("error: %v, signature was %v", err, signature)
 		}

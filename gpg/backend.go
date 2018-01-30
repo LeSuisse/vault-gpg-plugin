@@ -1,14 +1,15 @@
 package gpg
 
 import (
+	"context"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
 )
 
 // Factory gives a configured logical.Backend for the GPG plugin
-func Factory(conf *logical.BackendConfig) (logical.Backend, error) {
+func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend, error) {
 	b := Backend()
-	if err := b.Setup(conf); err != nil {
+	if err := b.Setup(ctx, conf); err != nil {
 		return nil, err
 	}
 	return b, nil
@@ -27,8 +28,9 @@ func Backend() *backend {
 			pathVerify(&b),
 			pathDecrypt(&b),
 		},
-		Secrets:     []*framework.Secret{},
-		BackendType: logical.TypeLogical,
+		PathsSpecial: &logical.Paths{},
+		Secrets:      []*framework.Secret{},
+		BackendType:  logical.TypeLogical,
 	}
 	return &b
 }

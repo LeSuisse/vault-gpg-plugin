@@ -1,6 +1,7 @@
 package gpg
 
 import (
+	"context"
 	"github.com/hashicorp/vault/logical"
 	"testing"
 )
@@ -15,7 +16,7 @@ func TestGPG_ExportNotExistingKeyReturnsNotFound(t *testing.T) {
 		Operation: logical.ReadOperation,
 		Path:      "export/test",
 	}
-	rsp, err := b.HandleRequest(req)
+	rsp, err := b.HandleRequest(context.Background(), req)
 
 	if !(rsp == nil && err == nil) {
 		t.Fatal("Key does not exist but does not return not found")
@@ -35,7 +36,7 @@ func TestGPG_ExportNotExportableKeyReturnsNotFound(t *testing.T) {
 			"real_name": "Vault GPG test",
 		},
 	}
-	_, err := b.HandleRequest(req)
+	_, err := b.HandleRequest(context.Background(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +46,7 @@ func TestGPG_ExportNotExportableKeyReturnsNotFound(t *testing.T) {
 		Operation: logical.ReadOperation,
 		Path:      "export/test",
 	}
-	resp, err := b.HandleRequest(reqExp)
+	resp, err := b.HandleRequest(context.Background(), reqExp)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +69,7 @@ func TestGPG_ExportKey(t *testing.T) {
 			"exportable": true,
 		},
 	}
-	_, err := b.HandleRequest(req)
+	_, err := b.HandleRequest(context.Background(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +79,7 @@ func TestGPG_ExportKey(t *testing.T) {
 		Operation: logical.ReadOperation,
 		Path:      "export/test",
 	}
-	resp, err := b.HandleRequest(reqExp)
+	resp, err := b.HandleRequest(context.Background(), reqExp)
 	if err != nil {
 		t.Fatal(err)
 	}

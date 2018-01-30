@@ -1,6 +1,7 @@
 package gpg
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"github.com/hashicorp/vault/logical"
@@ -15,7 +16,7 @@ import (
 func TestBackend_CRUD(t *testing.T) {
 	config := logical.TestBackendConfig()
 	config.StorageView = &logical.InmemStorage{}
-	b, err := Factory(config)
+	b, err := Factory(context.Background(), config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +46,7 @@ func TestBackend_CRUD(t *testing.T) {
 func TestBackend_CRUDImportedKey(t *testing.T) {
 	config := logical.TestBackendConfig()
 	config.StorageView = &logical.InmemStorage{}
-	b, err := Factory(config)
+	b, err := Factory(context.Background(), config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,7 +72,7 @@ func TestBackend_CRUDImportedKey(t *testing.T) {
 func TestBackend_InvalidCharIdentity(t *testing.T) {
 	config := logical.TestBackendConfig()
 	config.StorageView = &logical.InmemStorage{}
-	b, err := Factory(config)
+	b, err := Factory(context.Background(), config)
 	if err != nil {
 		t.Fatal(err)
 	}

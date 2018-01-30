@@ -2,6 +2,7 @@ package gpg
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"fmt"
 	"github.com/hashicorp/vault/logical"
@@ -73,8 +74,8 @@ func pathKeys(b *backend) *framework.Path {
 	}
 }
 
-func (b *backend) key(s logical.Storage, name string) (*keyEntry, error) {
-	entry, err := s.Get("key/" + name)
+func (b *backend) key(ctx context.Context, s logical.Storage, name string) (*keyEntry, error) {
+	entry, err := s.Get(ctx, "key/"+name)
 	if err != nil {
 		return nil, err
 	}
@@ -141,8 +142,8 @@ func serializePrivateWithoutSigning(w io.Writer, e *openpgp.Entity) (err error) 
 	return nil
 }
 
-func (b *backend) pathKeyRead(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	entry, err := b.key(req.Storage, data.Get("name").(string))
+func (b *backend) pathKeyRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	entry, err := b.key(ctx, req.Storage, data.Get("name").(string))
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +172,7 @@ func (b *backend) pathKeyRead(req *logical.Request, data *framework.FieldData) (
 	}, nil
 }
 
-func (b *backend) pathKeyCreate(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	name := data.Get("name").(string)
 	realName := data.Get("real_name").(string)
 	email := data.Get("email").(string)
@@ -219,14 +220,14 @@ func (b *backend) pathKeyCreate(req *logical.Request, data *framework.FieldData)
 	if err != nil {
 		return nil, err
 	}
-	if err := req.Storage.Put(entry); err != nil {
+	if err := req.Storage.Put(ctx, entry); err != nil {
 		return nil, err
 	}
 	return nil, nil
 }
 
-func (b *backend) pathKeyDelete(req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	err := req.Storage.Delete("key/" + data.Get("name").(string))
+func (b *backend) pathKeyDelete(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	err := req.Storage.Delete(ctx, "key/"+data.Get("name").(string))
 	if err != nil {
 		return nil, err
 	}
@@ -234,8 +235,8 @@ func (b *backend) pathKeyDelete(req *logical.Request, data *framework.FieldData)
 }
 
 func (b *backend) pathKeyList(
-	req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
-	entries, err := req.Storage.List("key/")
+	ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+	entries, err := req.Storage.List(ctx, "key/")
 	if err != nil {
 		return nil, err
 	}

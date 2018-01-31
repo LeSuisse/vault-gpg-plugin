@@ -62,7 +62,7 @@ This endpoint creates a new named GPG key.
 {
   "real_name": "John Doe",
   "email": "john.doe@example.com",
-  "key_bits": 4096
+  "key_bits": "4096"
 }
 ```
 

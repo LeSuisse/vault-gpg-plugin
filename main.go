@@ -17,6 +17,10 @@ func main() {
 	tlsConfig := apiClientMeta.GetTLSConfig()
 	tlsProviderFunc := pluginutil.VaultPluginTLSProvider(tlsConfig)
 
+	// Fail the version check, falling back to netRPC
+	// Workaround hashicorp/vault#3873
+	os.Unsetenv("VAULT_VERSION")
+
 	err := plugin.Serve(&plugin.ServeOpts{
 		BackendFactoryFunc: gpg.Factory,
 		TLSProviderFunc:    tlsProviderFunc,

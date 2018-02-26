@@ -98,6 +98,9 @@ func (b *backend) pathShowSessionKeyWrite(ctx context.Context, req *logical.Requ
 	var sessionKey string
 	for {
 		p, err = packet.Read(ciphertextDecoder)
+		if err == io.EOF {
+			return logical.ErrorResponse("Unable to decrypt session key"), nil
+		}
 		if err != nil {
 			return logical.ErrorResponse(err.Error()), logical.ErrInvalidRequest
 		}
@@ -119,8 +122,6 @@ func (b *backend) pathShowSessionKeyWrite(ctx context.Context, req *logical.Requ
 			}
 		}
 	}
-
-	return logical.ErrorResponse("Unable to decrypt session key"), nil
 }
 
 const pathDecryptSessionKeyHelpSyn = "Decrypt a session key of a message using a named GPG key"

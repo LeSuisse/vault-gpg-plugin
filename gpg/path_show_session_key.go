@@ -96,7 +96,6 @@ func (b *backend) pathShowSessionKeyWrite(ctx context.Context, req *logical.Requ
 
 	var p packet.Packet
 	var sessionKey string
-ParsePackets:
 	for {
 		p, err = packet.Read(ciphertextDecoder)
 		if err != nil {
@@ -111,21 +110,17 @@ ParsePackets:
 
 				if encryptedKey.Key != nil && len(encryptedKey.Key) > 0 {
 					sessionKey = fmt.Sprintf("%d:%s", encryptedKey.CipherFunc, strings.ToUpper(hex.EncodeToString(encryptedKey.Key)))
-					break ParsePackets
+					return &logical.Response{
+						Data: map[string]interface{}{
+							"session_key": sessionKey,
+						},
+					}, nil
 				}
-			}
-
-			if encryptedKey.Key == nil || len(encryptedKey.Key) == 0 {
-				return logical.ErrorResponse("Unable to decrypt session key"), nil
 			}
 		}
 	}
 
-	return &logical.Response{
-		Data: map[string]interface{}{
-			"session_key": sessionKey,
-		},
-	}, nil
+	return logical.ErrorResponse("Unable to decrypt session key"), nil
 }
 
 const pathDecryptSessionKeyHelpSyn = "Decrypt a session key of a message using a named GPG key"

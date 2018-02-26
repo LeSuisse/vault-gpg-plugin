@@ -123,7 +123,7 @@ ParsePackets:
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"sessionKey": sessionKey,
+			"session_key": sessionKey,
 		},
 	}, nil
 }

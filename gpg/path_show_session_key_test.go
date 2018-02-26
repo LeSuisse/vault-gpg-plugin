@@ -49,7 +49,7 @@ func TestGPG_ShowSessionKey(t *testing.T) {
 		if resp == nil {
 			t.Fatalf("no name key found in response data %#v", resp)
 		}
-		plaintext, ok := resp.Data["sessionKey"]
+		plaintext, ok := resp.Data["session_key"]
 		if !ok {
 			t.Fatalf("no name key found in response data %#v", resp.Data)
 		}

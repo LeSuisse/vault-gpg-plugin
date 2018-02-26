@@ -2,6 +2,7 @@ package gpg
 
 import (
 	"context"
+
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
 )
@@ -27,6 +28,7 @@ func Backend() *backend {
 			pathSign(&b),
 			pathVerify(&b),
 			pathDecrypt(&b),
+			pathShowSessionKey(&b),
 		},
 		PathsSpecial: &logical.Paths{
 			SealWrapStorage: []string{

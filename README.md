@@ -368,3 +368,54 @@ $ curl \
     "plaintext": "QWxwYWNhcwo="
   }
 }
+```
+
+### Show Session Key
+
+This endpoint decrypts and returns the session key of the provided ciphertext using the named GPG key.
+
+| Method   | Path                         | Produces               |
+| :------- | :--------------------------- | :--------------------- |
+| `POST`   | `/gpg/show-session-key/:name`| `200 application/json` |
+
+#### Parameters
+
+- `name` `(string: <required>)` – Specifies the name of the key to decrypt against. This is specified as part of the URL.
+
+- `format` `(string: "base64")` – Specifies the encoding format the ciphertext uses. Valid encoding format are:
+
+    - `base64`
+    - `ascii-armor`
+
+- `ciphertext` `(string: <required>)` – Specifies the ciphertext to decrypt.
+
+- `signer_key` `(string: "")` – Specifies the GPG key ASCII-armored of the signer. If present, the ciphertext must be signed and the signature valid otherwise the decryption fail.
+
+#### Sample Payload
+
+```json
+{
+  "format": "ascii-armor",
+  "ciphertext": "-----BEGIN PGP MESSAGE-----\n\nhQEMA923ECy\/uCBhAQf8DLagsnoLuM4AyKiTyvZ7uSQTkmOkwXwn1WWsxoKJkzdI\n...\ne8iwFg==\n=+yfj\n-----END PGP MESSAGE-----"
+}
+```
+
+#### Sample Request
+
+```
+$ curl \
+    --header "X-Vault-Token: ..." \
+    --request POST \
+    --data @payload.json \
+    https://vault.example.com/v1/gpg/show-session-key/my-key
+```
+
+#### Sample Response
+
+```json
+{
+  "data": {
+    "sessionKey": "9:720D9B92D50D4F7C404C8C412BEB73B47E0A2FA2E822C13201A79D5A2694F9F5"
+  }
+}
+```

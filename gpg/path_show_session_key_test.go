@@ -62,6 +62,7 @@ func TestGPG_ShowSessionKey(t *testing.T) {
 	showSessionKey("test", encryptedSessionMessageBase64Encoded, "base64", "", "9:EC211D19FA4FFC7F88B6AC6A1112C88032910753AB52FEF10C71D850A721151C")
 	showSessionKey("test", encryptedAndSignedSessionMessageAsciiArmored, "ascii-armor", publicSessionSignerKey, "9:E82F18EF202C2356CB758B56B79D4F4CCAD6CC21FDFBB6867FCFAC25BC10863C")
 	showSessionKey("test", encryptedSessionMessageAsciiArmored[:398], "ascii-armor", "", "9:BDF8F7A2A573556C1E7D2FE9ADDCA7188C451C60B5311025F2A900E9FC61809E")
+	showSessionKey("test", encryptedSessionMessageBase64EncodedWithMultipleKeys, "base64", "", "9:F8054D6D0F6E9C89155B829BC71E0613472EA70E32B9DA7893960536B04BB2BD")
 }
 
 func TestGPG_ShowSessionKeyError(t *testing.T) {
@@ -264,3 +265,15 @@ Ubm5BjtILbgkwpbSWBghW+lx5POhVt9mFax+Su9fZkUrPj3UGnHH2jeFB4EwHtkI
 TSpU+MkEN1+Gdp+peD7lHSgfOxvpfJt4qA8ic89DSWF1YYK8a8CkiiqnMQ==
 =Bepf
 -----END PGP MESSAGE-----`
+
+const encryptedSessionMessageBase64EncodedWithMultipleKeys = `hQEMA53ITnFABb0rAQf9Ftqb+riRjV5wz5ghTRlUdEnTx+3NDSINJsHqHgBSj0Leb3ICMmCryFk2
+ql8eYWlX04YNgUJjoAUXyDlXaW/F4B62Z+vYiVqcGqwK96UYz6e1AEWj8ir7vrq8W1gnwb0Rx99Q
+KkPEbD4gf6xBrnBsPcbo/o2Pxkf9jcFc0Fq78AXrpt+dTyvnLjMnvzcO4XOwXzswq7poG4AGC5Pb
+lx40+SKeMN0u7v3/nVk2i0GKJeT4rqq2kD/K07zzBggQd9FLbmGAO/oq44aczizNGiBUTaoidcOG
+Rw7oiZvFiA4BMRTdtAGd8+TqBxe19jIuQ0kZD5Bk8VLP+DKAPtnU9ZfSHYUBDAPdtxAsv7ggYQEH
+/11QmDPPsScTXb/YWu1tcO20QtDckQ3IYP20oQt4IV+LCIoKd7xJlwyMY467WL0s+7qfSSoi/zdP
+GyzZd8spC5m/rRp5tSlauUTYGPgkfun94tU8IZhQUwtZNIj0oxuf4cCyqtQXlycRELK7uFsVpWbs
+af1Alu1jB06ZyoPvrddODuwONGtBaeX4SasQX0P3bVZubISOcfQ+xYpQ2kZiUQu2ZMAVJRHB/jfR
+x31eMBp5QXSnNvt1G67yl+M9kwppTiToYEEuyRuXPZ0YmwESSLM/EVLl8KGukq7g/5ZmkVMaLped
+A710RWmTpQ2+4h5zGQfIJQDzvPEcG6aKtXqoyF3SSgFssSU+J5aMtOmNwhmMbdvQIlwaBNYi6sFM
+yMlVzPaMuFD3Kk9RN8jiM2m1Mnn4MPhse/PsAaNFTHYulApGLt/QuSjLjQey0HBb`

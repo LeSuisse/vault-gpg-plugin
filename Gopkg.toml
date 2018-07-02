@@ -1,6 +1,6 @@
 [[constraint]]
   name = "github.com/hashicorp/vault"
-  version = "0.9.4"
+  version = "0.10.3"
 
 [[constraint]]
   branch = "master"

@@ -1,55 +1,115 @@
 module github.com/LeSuisse/vault-gpg-plugin
 
 require (
-	cloud.google.com/go v0.24.0
-	github.com/Jeffail/gabs v1.1.0
-	github.com/NYTimes/gziphandler v1.0.1
-	github.com/SAP/go-hdb v0.12.1
-	github.com/SermoDigital/jose v0.0.0-20161205224733-f6df55f235c2
-	github.com/armon/go-metrics v0.0.0-20180620213357-58588f401c2c
-	github.com/armon/go-radix v0.0.0-20170727155443-1fca145dffbc
-	github.com/denisenkom/go-mssqldb v0.0.0-20180625034930-3724b4745ca9
-	github.com/elazarl/go-bindata-assetfs v1.0.0
-	github.com/go-sql-driver/mysql v1.4.0
-	github.com/gocql/gocql v0.0.0-20180617115710-e06f8c1bcd78
-	github.com/golang/protobuf v1.1.0
-	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db
-	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed
-	github.com/hashicorp/errwrap v0.0.0-20141028054710-7554cd9344ce
-	github.com/hashicorp/go-cleanhttp v0.0.0-20171218145408-d5fe4b57a186
-	github.com/hashicorp/go-hclog v0.0.0-20180402200405-69ff559dc25f
-	github.com/hashicorp/go-immutable-radix v0.0.0-20180129170900-7f3cd4390caa
-	github.com/hashicorp/go-memdb v0.0.0-20180223233045-1289e7fffe71
-	github.com/hashicorp/go-multierror v0.0.0-20171204182908-b7773ae21874
-	github.com/hashicorp/go-plugin v0.0.0-20180331002553-e8d22c780116
-	github.com/hashicorp/go-retryablehttp v0.0.0-20180531211321-3b087ef2d313
-	github.com/hashicorp/go-rootcerts v0.0.0-20160503143440-6bb64b370b90
-	github.com/hashicorp/go-sockaddr v0.0.0-20180320115054-6d291a969b86
-	github.com/hashicorp/go-uuid v0.0.0-20180228145832-27454136f036
-	github.com/hashicorp/go-version v0.0.0-20180322230233-23480c066577
-	github.com/hashicorp/golang-lru v0.0.0-20180201235237-0fb14efe8c47
-	github.com/hashicorp/hcl v0.0.0-20180404174102-ef8a98b0bbce
-	github.com/hashicorp/vault v0.10.3
-	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb
-	github.com/jefferai/jsonx v0.0.0-20160721235117-9cc31c3135ee
-	github.com/keybase/go-crypto v0.0.0-20180627172517-670ebd3adf7a
-	github.com/lib/pq v0.0.0-20180523175426-90697d60dd84
-	github.com/mitchellh/copystructure v0.0.0-20170525013902-d23ffcb85de3
-	github.com/mitchellh/go-homedir v0.0.0-20180523094522-3864e76763d9
-	github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77
+	cloud.google.com/go v0.24.0 // indirect
+	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
+	github.com/DataDog/datadog-go v0.0.0-20180822151419-281ae9f2d895 // indirect
+	github.com/Jeffail/gabs v1.1.0 // indirect
+	github.com/Microsoft/go-winio v0.4.11 // indirect
+	github.com/NYTimes/gziphandler v1.0.1 // indirect
+	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
+	github.com/SAP/go-hdb v0.12.1 // indirect
+	github.com/SermoDigital/jose v0.0.0-20161205224733-f6df55f235c2 // indirect
+	github.com/armon/go-metrics v0.0.0-20180620213357-58588f401c2c // indirect
+	github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310 // indirect
+	github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf // indirect
+	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect
+	github.com/bitly/go-hostpool v0.0.0-20171023180738-a3a6125de932 // indirect
+	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
+	github.com/cenkalti/backoff v2.0.0+incompatible // indirect
+	github.com/circonus-labs/circonus-gometrics v2.2.1+incompatible // indirect
+	github.com/circonus-labs/circonusllhist v0.0.0-20180430145027-5eb751da55c6 // indirect
+	github.com/containerd/continuity v0.0.0-20180829013124-f44b615e492b // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/denisenkom/go-mssqldb v0.0.0-20180625034930-3724b4745ca9 // indirect
+	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/docker/go-units v0.3.3 // indirect
+	github.com/duosecurity/duo_api_golang v0.0.0-20180315112207-d0530c80e49a // indirect
+	github.com/elazarl/go-bindata-assetfs v1.0.0 // indirect
+	github.com/fatih/structs v1.0.0 // indirect
+	github.com/fsnotify/fsnotify v1.4.7 // indirect
+	github.com/go-sql-driver/mysql v1.4.0 // indirect
+	github.com/go-test/deep v1.0.1 // indirect
+	github.com/gocql/gocql v0.0.0-20180617115710-e06f8c1bcd78 // indirect
+	github.com/gogo/protobuf v1.1.1 // indirect
+	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
+	github.com/golang/protobuf v1.1.0 // indirect
+	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
+	github.com/google/go-cmp v0.2.0 // indirect
+	github.com/google/go-github v17.0.0+incompatible // indirect
+	github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 // indirect
+	github.com/gotestyourself/gotestyourself v2.1.0+incompatible // indirect
+	github.com/hashicorp/consul v1.2.2 // indirect
+	github.com/hashicorp/go-cleanhttp v0.0.0-20171218145408-d5fe4b57a186 // indirect
+	github.com/hashicorp/go-hclog v0.0.0-20180402200405-69ff559dc25f // indirect
+	github.com/hashicorp/go-immutable-radix v0.0.0-20180129170900-7f3cd4390caa // indirect
+	github.com/hashicorp/go-memdb v0.0.0-20180223233045-1289e7fffe71 // indirect
+	github.com/hashicorp/go-msgpack v0.0.0-20150518234257-fa3f63826f7c // indirect
+	github.com/hashicorp/go-multierror v1.0.0 // indirect
+	github.com/hashicorp/go-plugin v0.0.0-20180331002553-e8d22c780116 // indirect
+	github.com/hashicorp/go-retryablehttp v0.0.0-20180531211321-3b087ef2d313 // indirect
+	github.com/hashicorp/go-rootcerts v0.0.0-20160503143440-6bb64b370b90 // indirect
+	github.com/hashicorp/go-sockaddr v0.0.0-20180320115054-6d291a969b86 // indirect
+	github.com/hashicorp/go-uuid v0.0.0-20180228145832-27454136f036 // indirect
+	github.com/hashicorp/go-version v0.0.0-20180322230233-23480c066577 // indirect
+	github.com/hashicorp/golang-lru v0.0.0-20180201235237-0fb14efe8c47 // indirect
+	github.com/hashicorp/hcl v0.0.0-20180404174102-ef8a98b0bbce // indirect
+	github.com/hashicorp/memberlist v0.1.0 // indirect
+	github.com/hashicorp/serf v0.8.1 // indirect
+	github.com/hashicorp/vault v0.11.0
+	github.com/hashicorp/vault-plugin-secrets-kv v0.0.0-20180825215324-5a464a61f7de // indirect
+	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb // indirect
+	github.com/hpcloud/tail v1.0.0 // indirect
+	github.com/jefferai/jsonx v0.0.0-20160721235117-9cc31c3135ee // indirect
+	github.com/keybase/go-crypto v0.0.0-20180627172517-670ebd3adf7a // indirect
+	github.com/kr/pretty v0.1.0 // indirect
+	github.com/lib/pq v0.0.0-20180523175426-90697d60dd84 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
+	github.com/miekg/dns v1.0.8 // indirect
+	github.com/mitchellh/copystructure v0.0.0-20170525013902-d23ffcb85de3 // indirect
+	github.com/mitchellh/go-homedir v0.0.0-20180523094522-3864e76763d9 // indirect
+	github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77 // indirect
 	github.com/mitchellh/mapstructure v0.0.0-20180511142126-bb74f1db0675
-	github.com/mitchellh/reflectwalk v0.0.0-20170726202117-63d60e9d0dbc
-	github.com/oklog/run v1.0.0
-	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/ryanuber/go-glob v0.0.0-20160226084822-572520ed46db
+	github.com/mitchellh/reflectwalk v0.0.0-20170726202117-63d60e9d0dbc // indirect
+	github.com/oklog/run v1.0.0 // indirect
+	github.com/onsi/ginkgo v1.6.0 // indirect
+	github.com/onsi/gomega v1.4.1 // indirect
+	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
+	github.com/opencontainers/image-spec v1.0.1 // indirect
+	github.com/opencontainers/runc v0.1.1 // indirect
+	github.com/ory/dockertest v3.3.2+incompatible // indirect
+	github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
+	github.com/pkg/errors v0.8.0 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/prometheus/client_golang v0.8.0 // indirect
+	github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910 // indirect
+	github.com/prometheus/common v0.0.0-20180801064454-c7de2306084e // indirect
+	github.com/prometheus/procfs v0.0.0-20180725123919-05ee40e3a273 // indirect
+	github.com/ryanuber/go-glob v0.0.0-20160226084822-572520ed46db // indirect
+	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
+	github.com/sirupsen/logrus v1.0.6 // indirect
+	github.com/stretchr/testify v1.2.2 // indirect
+	github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926 // indirect
 	golang.org/x/crypto v0.0.0-20180621125126-a49355c7e3f8
-	golang.org/x/net v0.0.0-20180629035331-4cb1c02c05b0
-	golang.org/x/sys v0.0.0-20180627142611-7138fd3d9dc8
-	golang.org/x/text v0.3.0
-	golang.org/x/time v0.0.0-20180412165947-fbb02b2291d2
-	google.golang.org/appengine v1.1.0
-	google.golang.org/genproto v0.0.0-20180627194029-ff3583edef7d
-	google.golang.org/grpc v1.13.0
-	gopkg.in/inf.v0 v0.9.1
-	gopkg.in/mgo.v2 v2.0.0-20160818020120-3f83fa500528
+	golang.org/x/net v0.0.0-20180629035331-4cb1c02c05b0 // indirect
+	golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be // indirect
+	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f // indirect
+	golang.org/x/sys v0.0.0-20180823144017-11551d06cbcc // indirect
+	golang.org/x/text v0.3.0 // indirect
+	golang.org/x/time v0.0.0-20180412165947-fbb02b2291d2 // indirect
+	google.golang.org/appengine v1.1.0 // indirect
+	google.golang.org/genproto v0.0.0-20180627194029-ff3583edef7d // indirect
+	google.golang.org/grpc v1.13.0 // indirect
+	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
+	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
+	gopkg.in/fsnotify.v1 v1.4.7 // indirect
+	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
+	gopkg.in/mgo.v2 v2.0.0-20160818020120-3f83fa500528 // indirect
+	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
+	gopkg.in/vmihailenco/msgpack.v2 v2.9.1 // indirect
+	gopkg.in/yaml.v2 v2.2.1 // indirect
+	gotest.tools v2.1.0+incompatible // indirect
+	labix.org/v2/mgo v0.0.0-20140701140051-000000000287 // indirect
+	launchpad.net/gocheck v0.0.0-20140225173054-000000000087 // indirect
 )

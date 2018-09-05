@@ -1,0 +1,55 @@
+module github.com/LeSuisse/vault-gpg-plugin
+
+require (
+	cloud.google.com/go v0.24.0
+	github.com/Jeffail/gabs v1.1.0
+	github.com/NYTimes/gziphandler v1.0.1
+	github.com/SAP/go-hdb v0.12.1
+	github.com/SermoDigital/jose v0.0.0-20161205224733-f6df55f235c2
+	github.com/armon/go-metrics v0.0.0-20180620213357-58588f401c2c
+	github.com/armon/go-radix v0.0.0-20170727155443-1fca145dffbc
+	github.com/denisenkom/go-mssqldb v0.0.0-20180625034930-3724b4745ca9
+	github.com/elazarl/go-bindata-assetfs v1.0.0
+	github.com/go-sql-driver/mysql v1.4.0
+	github.com/gocql/gocql v0.0.0-20180617115710-e06f8c1bcd78
+	github.com/golang/protobuf v1.1.0
+	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db
+	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed
+	github.com/hashicorp/errwrap v0.0.0-20141028054710-7554cd9344ce
+	github.com/hashicorp/go-cleanhttp v0.0.0-20171218145408-d5fe4b57a186
+	github.com/hashicorp/go-hclog v0.0.0-20180402200405-69ff559dc25f
+	github.com/hashicorp/go-immutable-radix v0.0.0-20180129170900-7f3cd4390caa
+	github.com/hashicorp/go-memdb v0.0.0-20180223233045-1289e7fffe71
+	github.com/hashicorp/go-multierror v0.0.0-20171204182908-b7773ae21874
+	github.com/hashicorp/go-plugin v0.0.0-20180331002553-e8d22c780116
+	github.com/hashicorp/go-retryablehttp v0.0.0-20180531211321-3b087ef2d313
+	github.com/hashicorp/go-rootcerts v0.0.0-20160503143440-6bb64b370b90
+	github.com/hashicorp/go-sockaddr v0.0.0-20180320115054-6d291a969b86
+	github.com/hashicorp/go-uuid v0.0.0-20180228145832-27454136f036
+	github.com/hashicorp/go-version v0.0.0-20180322230233-23480c066577
+	github.com/hashicorp/golang-lru v0.0.0-20180201235237-0fb14efe8c47
+	github.com/hashicorp/hcl v0.0.0-20180404174102-ef8a98b0bbce
+	github.com/hashicorp/vault v0.10.3
+	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb
+	github.com/jefferai/jsonx v0.0.0-20160721235117-9cc31c3135ee
+	github.com/keybase/go-crypto v0.0.0-20180627172517-670ebd3adf7a
+	github.com/lib/pq v0.0.0-20180523175426-90697d60dd84
+	github.com/mitchellh/copystructure v0.0.0-20170525013902-d23ffcb85de3
+	github.com/mitchellh/go-homedir v0.0.0-20180523094522-3864e76763d9
+	github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77
+	github.com/mitchellh/mapstructure v0.0.0-20180511142126-bb74f1db0675
+	github.com/mitchellh/reflectwalk v0.0.0-20170726202117-63d60e9d0dbc
+	github.com/oklog/run v1.0.0
+	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/ryanuber/go-glob v0.0.0-20160226084822-572520ed46db
+	golang.org/x/crypto v0.0.0-20180621125126-a49355c7e3f8
+	golang.org/x/net v0.0.0-20180629035331-4cb1c02c05b0
+	golang.org/x/sys v0.0.0-20180627142611-7138fd3d9dc8
+	golang.org/x/text v0.3.0
+	golang.org/x/time v0.0.0-20180412165947-fbb02b2291d2
+	google.golang.org/appengine v1.1.0
+	google.golang.org/genproto v0.0.0-20180627194029-ff3583edef7d
+	google.golang.org/grpc v1.13.0
+	gopkg.in/inf.v0 v0.9.1
+	gopkg.in/mgo.v2 v2.0.0-20160818020120-3f83fa500528
+)

@@ -12,7 +12,7 @@ install: true
 
 script:
   - diff -u <(echo -n) <(gofmt -d -s *.go gpg/)
-  - go vet ./...
+  - env GO111MODULE=on go vet ./...
   - env GO111MODULE=on go test -race -coverprofile=coverage.txt -covermode=atomic -v ./gpg/
 
 after_success:

@@ -18,8 +18,10 @@ func pathExportKeys(b *backend) *framework.Path {
 				Description: "Name of the key",
 			},
 		},
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.ReadOperation: b.pathExportKeyRead,
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.ReadOperation: &framework.PathOperation{
+				Callback: b.pathExportKeyRead,
+			},
 		},
 		HelpSynopsis:    pathExportHelpSyn,
 		HelpDescription: pathExportHelpDesc,

@@ -47,8 +47,10 @@ Defaults to "sha2-256".`,
 				Description: `Encoding format to use. Can be "base64" or "ascii-armor". Defaults to "base64".`,
 			},
 		},
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.UpdateOperation: b.pathSignWrite,
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.UpdateOperation: &framework.PathOperation{
+				Callback: b.pathSignWrite,
+			},
 		},
 		HelpSynopsis:    pathSignHelpSyn,
 		HelpDescription: pathSignHelpDesc,
@@ -77,8 +79,10 @@ func pathVerify(b *backend) *framework.Path {
 				Description: `Encoding format the signature use. Can be "base64" or "ascii-armor". Defaults to "base64".`,
 			},
 		},
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.UpdateOperation: b.pathVerifyWrite,
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.UpdateOperation: &framework.PathOperation{
+				Callback: b.pathVerifyWrite,
+			},
 		},
 		HelpSynopsis:    pathVerifyHelpSyn,
 		HelpDescription: pathVerifyHelpDesc,

@@ -30,7 +30,7 @@ func TestBackend_CRUD(t *testing.T) {
 	}
 
 	logicaltest.Test(t, logicaltest.TestCase{
-		Backend: b,
+		LogicalBackend: b,
 		Steps: []logicaltest.TestStep{
 			testAccStepCreateKey("test", keyData, false),
 			testAccStepCreateKey("test2", keyData, false),
@@ -58,7 +58,7 @@ func TestBackend_CRUDImportedKey(t *testing.T) {
 	}
 
 	logicaltest.Test(t, logicaltest.TestCase{
-		Backend: b,
+		LogicalBackend: b,
 		Steps: []logicaltest.TestStep{
 			testAccStepCreateKey("test", keyData, false),
 			testAccStepReadKey("test", keyData),
@@ -78,7 +78,7 @@ func TestBackend_InvalidCharIdentity(t *testing.T) {
 	}
 
 	logicaltest.Test(t, logicaltest.TestCase{
-		Backend: b,
+		LogicalBackend: b,
 		Steps: []logicaltest.TestStep{
 			testAccStepCreateKey(
 				"test",

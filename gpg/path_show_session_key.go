@@ -39,11 +39,11 @@ func pathShowSessionKey(b *backend) *framework.Path {
 				Description: "The ASCII-armored GPG key of the signer of the ciphertext. If present, the signature must be valid.",
 			},
 		},
-
-		Callbacks: map[logical.Operation]framework.OperationFunc{
-			logical.UpdateOperation: b.pathShowSessionKeyWrite,
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.UpdateOperation: &framework.PathOperation{
+				Callback: b.pathShowSessionKeyWrite,
+			},
 		},
-
 		HelpSynopsis:    pathDecryptSessionKeyHelpSyn,
 		HelpDescription: pathDecryptSessionKeyHelpDesc,
 	}

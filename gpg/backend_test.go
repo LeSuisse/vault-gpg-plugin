@@ -3,9 +3,7 @@ package gpg
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
-	"github.com/hashicorp/vault/logical"
-	logicaltest "github.com/hashicorp/vault/logical/testing"
+	"github.com/hashicorp/vault/sdk/logical"
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/crypto/openpgp"
 	"reflect"
@@ -14,12 +12,7 @@ import (
 )
 
 func TestBackend_CRUD(t *testing.T) {
-	config := logical.TestBackendConfig()
-	config.StorageView = &logical.InmemStorage{}
-	b, err := Factory(context.Background(), config)
-	if err != nil {
-		t.Fatal(err)
-	}
+	b, storage := getTestBackend(t)
 
 	keyData := map[string]interface{}{
 		"real_name":  "Vault",
@@ -29,27 +22,17 @@ func TestBackend_CRUD(t *testing.T) {
 		"exportable": true,
 	}
 
-	logicaltest.Test(t, logicaltest.TestCase{
-		LogicalBackend: b,
-		Steps: []logicaltest.TestStep{
-			testAccStepCreateKey("test", keyData, false),
-			testAccStepCreateKey("test2", keyData, false),
-			testAccStepCreateKey("test3", keyData, false),
-			testAccStepReadKey("test", keyData),
-			testAccStepDeleteKey("test"),
-			testAccStepListKey([]string{"test2", "test3"}),
-			testAccStepReadKey("test", nil),
-		},
-	})
+	testAccStepCreateKey(t, b, storage, "test", keyData, false)
+	testAccStepCreateKey(t, b, storage, "test2", keyData, false)
+	testAccStepCreateKey(t, b, storage, "test3", keyData, false)
+	testAccStepReadKey(t, b, storage, "test", keyData)
+	testAccStepDeleteKey(t, b, storage, "test")
+	testAccStepListKey(t, b, storage, []string{"test2", "test3"})
+	testAccStepReadKey(t, b, storage, "test", nil)
 }
 
 func TestBackend_CRUDImportedKey(t *testing.T) {
-	config := logical.TestBackendConfig()
-	config.StorageView = &logical.InmemStorage{}
-	b, err := Factory(context.Background(), config)
-	if err != nil {
-		t.Fatal(err)
-	}
+	b, storage := getTestBackend(t)
 
 	keyData := map[string]interface{}{
 		"key":      gpgKey,
@@ -57,19 +40,171 @@ func TestBackend_CRUDImportedKey(t *testing.T) {
 		"key_bits": 2048,
 	}
 
-	logicaltest.Test(t, logicaltest.TestCase{
-		LogicalBackend: b,
-		Steps: []logicaltest.TestStep{
-			testAccStepCreateKey("test", keyData, false),
-			testAccStepReadKey("test", keyData),
-			testAccStepListKey([]string{"test"}),
-			testAccStepDeleteKey("test"),
-			testAccStepReadKey("test", nil),
-		},
-	})
+	testAccStepCreateKey(t, b, storage, "test", keyData, false)
+	testAccStepReadKey(t, b, storage, "test", keyData)
+	testAccStepListKey(t, b, storage, []string{"test"})
+	testAccStepDeleteKey(t, b, storage, "test")
+	testAccStepReadKey(t, b, storage, "test", nil)
 }
 
 func TestBackend_InvalidCharIdentity(t *testing.T) {
+	b, storage := getTestBackend(t)
+
+	testAccStepCreateKey(
+		t,
+		b,
+		storage,
+		"test",
+		map[string]interface{}{
+			"real_name": "Vault<>",
+			"email":     "vault@example.com",
+			"comment":   "Comment",
+		},
+		true,
+	)
+	testAccStepCreateKey(
+		t,
+		b,
+		storage,
+		"test",
+		map[string]interface{}{
+			"real_name": "Vault",
+			"email":     "vault@example.com()",
+			"comment":   "Comment",
+		},
+		true,
+	)
+	testAccStepCreateKey(
+		t,
+		b,
+		storage,
+		"test",
+		map[string]interface{}{
+			"real_name": "Vault",
+			"email":     "vault@example.com",
+			"comment":   "Comment<>",
+		},
+		true,
+	)
+}
+
+func testAccStepCreateKey(t *testing.T, b logical.Backend, s logical.Storage, name string, keyData map[string]interface{}, expectFail bool) {
+	resp, err := b.HandleRequest(context.Background(), &logical.Request{
+		Operation: logical.UpdateOperation,
+		Path:      "keys/" + name,
+		Data:      keyData,
+		Storage:   s,
+	})
+	if !expectFail {
+		if err != nil {
+			t.Error(err)
+		}
+		if resp.IsError() {
+			t.Error(resp.Error())
+		}
+	}
+}
+
+func testAccStepReadKey(t *testing.T, b logical.Backend, storage logical.Storage, name string, keyData map[string]interface{}) {
+	response, err := b.HandleRequest(context.Background(), &logical.Request{
+		Operation: logical.ReadOperation,
+		Path:      "keys/" + name,
+		Data:      keyData,
+		Storage:   storage,
+	})
+
+	if err != nil {
+		t.Error(err)
+	}
+	if response.IsError() {
+		t.Error(response.Error())
+	}
+
+	if response == nil {
+		if keyData == nil {
+			return
+		}
+		t.Errorf("response not expected: %#v", response)
+		return
+	}
+
+	var s struct {
+		Fingerprint string `mapstructure:"fingerprint"`
+		PublicKey   string `mapstructure:"public_key"`
+	}
+
+	if err := mapstructure.Decode(response.Data, &s); err != nil {
+		t.Fatal(err)
+	}
+
+	r := strings.NewReader(s.PublicKey)
+	el, err := openpgp.ReadArmoredKeyRing(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	nb := len(el)
+	if nb != 1 {
+		t.Errorf("1 entity is expected, %d found", nb)
+		return
+	}
+
+	e := el[0]
+
+	bitLength, err := e.PrimaryKey.BitLength()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fingerprint := hex.EncodeToString(e.PrimaryKey.Fingerprint[:])
+
+	switch {
+	case e.PrivateKey != nil:
+		t.Errorf("private key should not be exported")
+	case int(bitLength) != keyData["key_bits"]:
+		t.Errorf("key size should be %d, got %d", keyData["key_bits"], bitLength)
+	case s.Fingerprint != fingerprint:
+		t.Errorf("fingerprint does not match: %s %s", s.Fingerprint, fingerprint)
+	case len(e.Identities) != 1:
+		t.Errorf("expected 1 identity, %d found", len(e.Identities))
+	}
+}
+
+func testAccStepDeleteKey(t *testing.T, b logical.Backend, storage logical.Storage, name string) {
+	response, err := b.HandleRequest(context.Background(), &logical.Request{
+		Operation: logical.DeleteOperation,
+		Path:      "keys/" + name,
+		Storage:   storage,
+	})
+
+	if err != nil {
+		t.Error(err)
+	}
+	if response.IsError() {
+		t.Error(response.Error())
+	}
+}
+
+func testAccStepListKey(t *testing.T, b logical.Backend, storage logical.Storage, names []string) {
+	response, err := b.HandleRequest(context.Background(), &logical.Request{
+		Operation: logical.ListOperation,
+		Path:      "keys/",
+		Storage:   storage,
+	})
+
+	if err != nil {
+		t.Error(err)
+	}
+	if response.IsError() {
+		t.Error(response.Error())
+	}
+
+	respKeys := response.Data["keys"].([]string)
+	if !reflect.DeepEqual(respKeys, names) {
+		t.Errorf("does not match: %#v %#v", respKeys, names)
+	}
+}
+
+func getTestBackend(t *testing.T) (logical.Backend, logical.Storage) {
 	config := logical.TestBackendConfig()
 	config.StorageView = &logical.InmemStorage{}
 	b, err := Factory(context.Background(), config)
@@ -77,121 +212,7 @@ func TestBackend_InvalidCharIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	logicaltest.Test(t, logicaltest.TestCase{
-		LogicalBackend: b,
-		Steps: []logicaltest.TestStep{
-			testAccStepCreateKey(
-				"test",
-				map[string]interface{}{
-					"real_name": "Vault<>",
-					"email":     "vault@example.com",
-					"comment":   "Comment",
-				},
-				true),
-			testAccStepCreateKey(
-				"test",
-				map[string]interface{}{
-					"real_name": "Vault",
-					"email":     "vault@example.com()",
-					"comment":   "Comment",
-				},
-				true),
-			testAccStepCreateKey(
-				"test",
-				map[string]interface{}{
-					"real_name": "Vault",
-					"email":     "vault@example.com",
-					"comment":   "Comment<>",
-				},
-				true),
-		},
-	})
-}
-
-func testAccStepCreateKey(name string, keyData map[string]interface{}, expectFail bool) logicaltest.TestStep {
-	return logicaltest.TestStep{
-		Operation: logical.UpdateOperation,
-		Path:      "keys/" + name,
-		Data:      keyData,
-		ErrorOk:   expectFail,
-	}
-}
-
-func testAccStepReadKey(name string, keyData map[string]interface{}) logicaltest.TestStep {
-	return logicaltest.TestStep{
-		Operation: logical.ReadOperation,
-		Path:      "keys/" + name,
-		Data:      keyData,
-		Check: func(response *logical.Response) error {
-			if response == nil {
-				if keyData == nil {
-					return nil
-				}
-				return fmt.Errorf("response not expected: %#v", response)
-			}
-
-			var s struct {
-				Fingerprint string `mapstructure:"fingerprint"`
-				PublicKey   string `mapstructure:"public_key"`
-			}
-
-			if err := mapstructure.Decode(response.Data, &s); err != nil {
-				return err
-			}
-
-			r := strings.NewReader(s.PublicKey)
-			el, err := openpgp.ReadArmoredKeyRing(r)
-			if err != nil {
-				return err
-			}
-
-			nb := len(el)
-			if nb != 1 {
-				return fmt.Errorf("1 entity is expected, %d found", nb)
-			}
-
-			e := el[0]
-
-			bitLength, err := e.PrimaryKey.BitLength()
-			if err != nil {
-				return err
-			}
-			fingerprint := hex.EncodeToString(e.PrimaryKey.Fingerprint[:])
-
-			switch {
-			case e.PrivateKey != nil:
-				return fmt.Errorf("private key should not be exported")
-			case int(bitLength) != keyData["key_bits"]:
-				return fmt.Errorf("key size should be %d, got %d", keyData["key_bits"], bitLength)
-			case s.Fingerprint != fingerprint:
-				return fmt.Errorf("fingerprint does not match: %s %s", s.Fingerprint, fingerprint)
-			case len(e.Identities) != 1:
-				return fmt.Errorf("expected 1 identity, %d found", len(e.Identities))
-			}
-			return nil
-		},
-	}
-}
-
-func testAccStepDeleteKey(name string) logicaltest.TestStep {
-	return logicaltest.TestStep{
-		Operation: logical.DeleteOperation,
-		Path:      "keys/" + name,
-	}
-}
-
-func testAccStepListKey(names []string) logicaltest.TestStep {
-	return logicaltest.TestStep{
-		Operation: logical.ListOperation,
-		Path:      "keys/",
-		Check: func(resp *logical.Response) error {
-			respKeys := resp.Data["keys"].([]string)
-			if !reflect.DeepEqual(respKeys, names) {
-				return fmt.Errorf("does not match: %#v %#v", respKeys, names)
-			}
-			return nil
-		},
-	}
+	return b, config.StorageView
 }
 
 const gpgKey = `-----BEGIN PGP PRIVATE KEY BLOCK-----

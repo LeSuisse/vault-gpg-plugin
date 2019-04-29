@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/hex"
 	"github.com/hashicorp/vault/sdk/logical"
-	"github.com/mitchellh/mapstructure"
 	"golang.org/x/crypto/openpgp"
 	"reflect"
 	"strings"
@@ -128,16 +127,7 @@ func testAccStepReadKey(t *testing.T, b logical.Backend, storage logical.Storage
 		return
 	}
 
-	var s struct {
-		Fingerprint string `mapstructure:"fingerprint"`
-		PublicKey   string `mapstructure:"public_key"`
-	}
-
-	if err := mapstructure.Decode(response.Data, &s); err != nil {
-		t.Fatal(err)
-	}
-
-	r := strings.NewReader(s.PublicKey)
+	r := strings.NewReader(response.Data["public_key"].(string))
 	el, err := openpgp.ReadArmoredKeyRing(r)
 	if err != nil {
 		t.Fatal(err)
@@ -162,8 +152,8 @@ func testAccStepReadKey(t *testing.T, b logical.Backend, storage logical.Storage
 		t.Errorf("private key should not be exported")
 	case int(bitLength) != keyData["key_bits"]:
 		t.Errorf("key size should be %d, got %d", keyData["key_bits"], bitLength)
-	case s.Fingerprint != fingerprint:
-		t.Errorf("fingerprint does not match: %s %s", s.Fingerprint, fingerprint)
+	case response.Data["fingerprint"] != fingerprint:
+		t.Errorf("fingerprint does not match: %s %s", response.Data["fingerprint"], fingerprint)
 	case len(e.Identities) != 1:
 		t.Errorf("expected 1 identity, %d found", len(e.Identities))
 	}

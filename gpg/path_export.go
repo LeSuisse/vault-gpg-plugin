@@ -30,7 +30,10 @@ func pathExportKeys(b *backend) *framework.Path {
 
 func (b *backend) pathExportKeyRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	name := data.Get("name").(string)
+	// Acquire a read lock before the read operation.
+	b.lock.RLock()
 	entry, err := b.key(ctx, req.Storage, name)
+	b.lock.RUnlock()
 	if err != nil {
 		return nil, err
 	}

@@ -4,14 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"fmt"
+	"strings"
+
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"
-	"io"
-	"strings"
 )
 
 func pathListKeys(b *backend) *framework.Path {
@@ -109,63 +108,36 @@ func (b *backend) entity(entry *keyEntry) (*openpgp.Entity, error) {
 	return el[0], nil
 }
 
-func serializePrivateWithoutSigning(w io.Writer, e *openpgp.Entity) (err error) {
-	foundPrivateKey := false
-
-	if e.PrivateKey != nil {
-		foundPrivateKey = true
-		err = e.PrivateKey.Serialize(w)
-		if err != nil {
-			return
-		}
-	}
-	for _, ident := range e.Identities {
-		err = ident.UserId.Serialize(w)
-		if err != nil {
-			return
-		}
-		err = ident.SelfSignature.Serialize(w)
-		if err != nil {
-			return
-		}
-	}
-	for _, subkey := range e.Subkeys {
-		if subkey.PrivateKey != nil {
-			foundPrivateKey = true
-			err = subkey.PrivateKey.Serialize(w)
-			if err != nil {
-				return
-			}
-		}
-		err = subkey.Sig.Serialize(w)
-		if err != nil {
-			return
-		}
-	}
-
-	if !foundPrivateKey {
-		return fmt.Errorf("No private key has been found")
-	}
-
-	return nil
-}
-
-func (b *backend) pathKeyRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	entry, err := b.key(ctx, req.Storage, data.Get("name").(string))
+func (b *backend) readKeyByName(ctx context.Context, req *logical.Request, name string) (*openpgp.Entity, bool, error) {
+	// Acquire a read lock before the read operation.
+	b.lock.RLock()
+	entry, err := b.key(ctx, req.Storage, name)
+	b.lock.RUnlock()
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	if entry == nil {
-		return nil, nil
+		return nil, false, nil
 	}
 	entity, err := b.entity(entry)
 	if err != nil {
+		return nil, false, err
+	}
+	return entity, entry.Exportable, nil
+}
+
+func (b *backend) pathKeyRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	entity, exportable, err := b.readKeyByName(ctx, req, data.Get("name").(string))
+	if err != nil {
 		return nil, err
+	}
+	if entity == nil {
+		return nil, nil
 	}
 
 	var buf bytes.Buffer
 	w, err := armor.Encode(&buf, openpgp.PublicKeyType, nil)
-	err = entity.Serialize(w)
+	err = serializeWithRevocations(w, entity)
 	w.Close()
 	if err != nil {
 		return nil, err
@@ -175,7 +147,7 @@ func (b *backend) pathKeyRead(ctx context.Context, req *logical.Request, data *f
 		Data: map[string]interface{}{
 			"fingerprint": hex.EncodeToString(entity.PrimaryKey.Fingerprint[:]),
 			"public_key":  buf.String(),
-			"exportable":  entry.Exportable,
+			"exportable":  exportable,
 		},
 	}, nil
 }
@@ -191,6 +163,7 @@ func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data 
 	key := data.Get("key").(string)
 
 	var buf bytes.Buffer
+	var keyID string
 	switch generate {
 	case true:
 		if keyBits < 2048 {
@@ -207,6 +180,7 @@ func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data 
 		if err != nil {
 			return nil, err
 		}
+		keyID = hex.EncodeToString(entity.PrimaryKey.Fingerprint[:])
 	default:
 		if key == "" {
 			return logical.ErrorResponse("the key value is required for generated keys"), nil
@@ -215,10 +189,11 @@ func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data 
 		if err != nil {
 			return logical.ErrorResponse(err.Error()), nil
 		}
-		err = serializePrivateWithoutSigning(&buf, el[0])
+		err = serializeEntityWithAllSignatures(&buf, el[0])
 		if err != nil {
 			return logical.ErrorResponse("the key could not be serialized, is a private key present?"), nil
 		}
+		keyID = hex.EncodeToString(el[0].PrimaryKey.Fingerprint[:])
 	}
 
 	entry, err := logical.StorageEntryJSON("key/"+name, &keyEntry{
@@ -228,13 +203,34 @@ func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data 
 	if err != nil {
 		return nil, err
 	}
+
+	keyIDToNameMap, err := b.readKeyIDToNameMap(ctx, req.Storage)
+	if err != nil {
+		return logical.ErrorResponse(err.Error()), err
+	}
+	// Acquire a write lock before writing the key.
+	b.lock.Lock()
 	if err := req.Storage.Put(ctx, entry); err != nil {
 		return nil, err
+	}
+	b.lock.Unlock()
+
+	if keyIDToNameMap == nil {
+		keyIDToNameMap = make(map[string]string)
+	}
+	keyIDToNameMap[keyID] = name
+	err = b.writeKeyIDToNameMap(ctx, req.Storage, keyIDToNameMap)
+	if err != nil {
+		return logical.ErrorResponse(err.Error()), err
 	}
 	return nil, nil
 }
 
 func (b *backend) pathKeyDelete(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	// Acquire a write lock before deleting the key.
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
 	err := req.Storage.Delete(ctx, "key/"+data.Get("name").(string))
 	if err != nil {
 		return nil, err
@@ -244,6 +240,10 @@ func (b *backend) pathKeyDelete(ctx context.Context, req *logical.Request, data 
 
 func (b *backend) pathKeyList(
 	ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
+	// Acquire a read lock before the read operation.
+	b.lock.RLock()
+	defer b.lock.RUnlock()
+
 	entries, err := req.Storage.List(ctx, "key/")
 	if err != nil {
 		return nil, err
@@ -256,9 +256,9 @@ type keyEntry struct {
 	Exportable    bool
 }
 
-const pathPolicyHelpSyn = "Managed named GPG keys"
+const pathPolicyHelpSyn = "Managed named GPG keys and subkeys"
 const pathPolicyHelpDesc = `
-This path is used to manage the named GPG keys that are available.
+This path is used to manage the named GPG keys and subkeys that are available.
 Doing a write with no value against a new named key will create
 it using a randomly generated key.
 `

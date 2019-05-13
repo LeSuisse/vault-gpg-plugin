@@ -100,6 +100,27 @@ func TestGPG_CreateErrorGeneratedKeyTooSmallKeyBits(t *testing.T) {
 	}
 }
 
+func TestGPG_ReadKeyByName(t *testing.T) {
+	storage := &logical.InmemStorage{}
+	b := Backend()
+
+	// Add the test key to the storage.
+	err := addKeyToTestStorage(b, storage, "test", false, gpgSignedAndRevokedTestKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req := &logical.Request{
+		Storage:   storage,
+		Operation: logical.ReadOperation,
+		Path:      "keys/test",
+	}
+	_, err = b.HandleRequest(context.Background(), req)
+	if err != nil {
+		t.Fatalf("Key exists but failed to read: %v", err)
+	}
+}
+
 const gpgPublicKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQENBFmZfJIBCACx2NgAf4rLLx2QKo444ATs3ewJICdy/cYhETxcn5wewdrxQayJ

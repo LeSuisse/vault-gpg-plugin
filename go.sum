@@ -69,6 +69,8 @@ github.com/hashicorp/vault/sdk v0.1.9 h1:GkHLrt3ZU8j/ATmbLqW5P/frBCxPhCRC6nLD0kD
 github.com/hashicorp/vault/sdk v0.1.9/go.mod h1:tHZfc6St71twLizWNHvnnbiGFo1aq0eD2jGPLtP8kAU=
 github.com/hashicorp/vault/sdk v0.1.10 h1:EM9KntG0pxqMuRRh69RejSRi97ARJdhZWraiPXOWzRI=
 github.com/hashicorp/vault/sdk v0.1.10/go.mod h1:XF2Bod+ahPWGARnyFq5LfkOZwWwvveR5ptYwJLqK0ZI=
+github.com/hashicorp/vault/sdk v0.1.11 h1:15dSaIT8p1Yq4Ac5OnlRGBdI5Ml/cqS84ObdM23kcA0=
+github.com/hashicorp/vault/sdk v0.1.11/go.mod h1:XF2Bod+ahPWGARnyFq5LfkOZwWwvveR5ptYwJLqK0ZI=
 github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb h1:b5rjCoWHc7eqmAS4/qyk21ZsHyb6Mxv/jykxvNTkU4M=
 github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb/go.mod h1:+NfK9FKeTrX5uv1uIXGdwYDTeHna2qgaIlx54MXqjAM=
 github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d h1:kJCB4vdITiW1eC1vq2e6IsrXKrZit1bv/TDYFGMp4BQ=

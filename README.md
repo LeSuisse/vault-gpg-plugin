@@ -94,7 +94,7 @@ $ curl \
     https://vault.example.com/v1/gpg/keys/my-imported-key
 ```
 
-### Read key
+### Read key by name
 
 This endpoint returns information about a named GPG key.
 
@@ -112,6 +112,39 @@ This endpoint returns information about a named GPG key.
 $ curl \
     --header "X-Vault-Token: ..." \
     https://vault.example.com/v1/gpg/keys/my-key
+```
+
+#### Sample response
+
+
+```json
+{
+  "data": {
+    "exportable": false,
+    "fingerprint": "b0b7e7ca0e4ba1a631d15196ef3331150a45bc4d",
+    "public_key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nxsBNBFmZ6QQBCAC5QSHMKe6M9S2G9REo3sJuDPX2lm4ZMULXCvwcVekPYyUFWYI8\n...\nnTruSryJ4xYCydiJ1xkTedrkVxhh7hJKHA==\n=4fdy\n-----END PGP PUBLIC KEY BLOCK-----"
+  }
+}
+```
+
+### Read key by fingerprint
+
+This endpoint returns information about a key associated with the specified fingerprint.
+
+| Method   | Path                         | Produces               |
+| :------- | :--------------------------- | :--------------------- |
+| `GET`    | `/gpg/keys/id/:ID`           | `200 application/json` |
+
+#### Parameters
+
+- `ID` `(string: <required>)` – Specifies the fingerprint of the key to read. This is specified as part of the URL.
+
+#### Sample request
+
+```
+$ curl \
+    --header "X-Vault-Token: ..." \
+    https://vault.example.com/v1/gpg/keys/id/b0b7e7ca0e4ba1a631d15196ef3331150a45bc4d
 ```
 
 #### Sample response
@@ -173,6 +206,138 @@ $ curl \
     --header "X-Vault-Token: ..." \
     --request DELETE \
     https://vault.example.com/v1/gpg/keys/my-key
+```
+
+### Create subkey
+
+This endpoint creates a new RSA gpg subkey associated with a named key.
+
+| Method   | Path                            | Produces                |
+| :------- | :------------------------------ | :---------------------- |
+| `POST`   | `/gpg/subkeys/:name`            | `200 application/json` |
+
+#### Parameters
+
+- `name` `(string: <required>)` – Specifies the name of the key to which subkey will be added. This is specified as part of the URL.
+
+- `key_bits` `(int: 2048)` – Specifies the number of bits of the generated GPG subkey to use.
+
+- `canSign` `(bool: false)` – Specifies if the subkey can be used for signing.
+
+- `canEncrypt` `(bool: true)` – Specifies if the subkey can be used for encryption.
+
+#### Sample Payload
+
+```json
+{
+  "canSign": true,
+  "canEncrypt": true,
+  "key_bits": 4096
+}
+```
+
+#### Sample request
+
+```
+$ curl \
+    --header "X-Vault-Token: ..." \
+    --request POST \
+    --data @payload.json \
+    https://vault.example.com/v1/gpg/subkeys/my-key
+```
+
+#### Sample response
+
+```json
+{
+  "data": {
+    "subkey-id": "b0b7e7ca0e4ba1a631d15196ef3331150a45bc4d",
+    "name": "my-key",
+  }
+}
+```
+
+### Read subkey by fingerprint
+
+This endpoint returns information about a specific subkey of a named key referenced using it's fingerprint.
+
+| Method   | Path                           | Produces               |
+| :------- | :----------------------------- | :--------------------- |
+| `GET`    | `/gpg/subkeys/:name/:subkeyID` | `200 application/json` |
+
+#### Parameters
+
+- `name` `(string: <required>)` – Specifies the name of the key to read. This is specified as part of the URL.
+
+- `subkeyID` `(string: <required>)` – Specifies the fingerprint of the subkey to read. This is specified as part of the URL.
+
+#### Sample request
+
+```
+$ curl \
+    --header "X-Vault-Token: ..." \
+    https://vault.example.com/v1/gpg/keys/my-key/b0b7e7ca0e4ba1a631d15196ef3331150a45bc4d
+```
+
+#### Sample response
+
+```json
+{
+  "data": {
+    "exportable": false,
+    "subkey": "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nxsBNBFmZ6QQBCAC5QSHMKe6M9S2G9REo3sJuDPX2lm4ZMULXCvwcVekPYyUFWYI8\n...\nnTruSryJ4xYCydiJ1xkTedrkVxhh7hJKHA==\n=4fdy\n-----END PGP PUBLIC KEY BLOCK-----"
+  }
+}
+```
+
+### List keys
+
+This endpoint returns a list of subkeys of a named GPG key. Only the fingerprint of the subkeys are returned.
+
+| Method   | Path                         | Produces               |
+| :------- | :--------------------------- | :--------------------- |
+| `LIST`   | `/gpg/subkeys/:name`         | `200 application/json` |
+
+#### Sample request
+
+```
+$ curl \
+    --header "X-Vault-Token: ..." \
+    --request LIST \
+    https://vault.example.com/v1/gpg/subkeys/my-key
+```
+
+#### Sample response
+
+```json
+{
+  "data": {
+    "keys": ["b0b7e7ca0e4ba1a631d15196ef3331150a45bc4d", "20b7e7fa124ba1a631d15196ef3331150a45bc4d"]
+  }
+}
+```
+
+### Delete subkey
+
+This endpoint deletes a subkey of a named GPG key referenced using it's fingerprint.
+
+| Method   | Path                            | Produces               |
+| :------- | :------------------------------ | :--------------------- |
+| `DELETE` | `/gpg/subkeys/:name/:subkeyID`  | `204 (empty body)`     |
+
+#### Parameters
+
+- `name` `(string: <required>)` – Specifies the name of the key to delete. This is specified as part of the URL.
+
+- `subkeyID` `(string: <required>)` – Specifies the fingerprint of the subkey to read. This is specified as part of the URL.
+
+#### Sample request
+
+```
+$ curl \
+    --header "X-Vault-Token: ..." \
+    --request DELETE \
+    https://vault.example.com/v1/gpg/subkeys/my-key/b0b7e7ca0e4ba1a631d15196ef3331150a45bc4d
 ```
 
 ### Export key
@@ -418,4 +583,83 @@ $ curl \
     "session_key": "9:720D9B92D50D4F7C404C8C412BEB73B47E0A2FA2E822C13201A79D5A2694F9F5"
   }
 }
+```
+
+### Revoke key or subkey
+
+This endpoint revokes a named key or a specific subkey of a named key.
+
+| Method   | Path                            | Produces                |
+| :------- | :------------------------------ | :---------------------- |
+| `POST`   | `/gpg/revoke/:name/:subkeyID`   | `204 (empty body)`      |
+
+#### Parameters
+
+- `name` `(string: <required>)` – Specifies the name of the key to which subkey will ne added. This is specified as part of the URL.
+
+- `subkeyID` `(string: "")` – Specifies the fingerprint of the subkey to be revoked. This is optional and specified as a part of the URL..
+
+- `reasonCode` `(int: 2048)` – Specifies the uint8 reason code for key revocation as per RFC4880.
+
+- `reasonText` `(string: "")` – Specifies the comment associated with the reason for revoking the key/subkey.
+
+#### Sample Payload
+
+```json
+{
+  "reasonCode": 2,
+  "reasonText": "Key is compromised.",
+}
+```
+
+#### Sample request for revoking key
+
+```
+$ curl \
+    --header "X-Vault-Token: ..." \
+    --request POST \
+    --data @payload.json \
+    https://vault.example.com/v1/gpg/revoke/my-key
+```
+
+#### Sample request for revoking subkey
+
+```
+$ curl \
+    --header "X-Vault-Token: ..." \
+    --request POST \
+    --data @payload.json \
+    https://vault.example.com/v1/gpg/revoke/my-key/b0b7e7ca0e4ba1a631d15196ef3331150a45bc4d
+```
+
+### Sign a key stored in vault
+
+This endpoint signs a key stored on vault with another key to show trust in the signed key.
+
+| Method   | Path                            | Produces                |
+| :------- | :------------------------------ | :---------------------- |
+| `POST`   | `/gpg/signKey/:signedKey`       | `204 (empty body)`      |
+
+#### Parameters
+
+- `name` `(string: <required>)` – Specifies the name of the key that will be used for signing.
+
+- `signedKey` `(string: "")` – Specifies the name of the key that needs to be signed. This is specified as a part of the URL.
+
+#### Sample Payload
+
+```json
+{
+  "name": "signer-key",
+}
+```
+
+#### Sample request for signing a key
+
+```
+$ curl \
+    --header "X-Vault-Token: ..." \
+    --request POST \
+    --data @payload.json \
+    https://vault.example.com/v1/gpg/signkey/my-key
 ```

@@ -2,6 +2,7 @@ package gpg
 
 import (
 	"context"
+	"sync"
 
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
@@ -23,9 +24,14 @@ func Backend() *backend {
 		Help: backendHelp,
 		Paths: []*framework.Path{
 			pathKeys(&b),
+			pathKeysByFingerprint(&b),
 			pathListKeys(&b),
+			pathListSubkeys(&b),
+			pathRevoke(&b),
+			pathSubkeys(&b),
 			pathExportKeys(&b),
 			pathSign(&b),
+			pathSignKey(&b),
 			pathVerify(&b),
 			pathDecrypt(&b),
 			pathShowSessionKey(&b),
@@ -43,6 +49,7 @@ func Backend() *backend {
 
 type backend struct {
 	*framework.Backend
+	lock sync.RWMutex
 }
 
 const backendHelp = `

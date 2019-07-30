@@ -54,7 +54,10 @@ func (b *backend) pathDecryptWrite(ctx context.Context, req *logical.Request, da
 		return logical.ErrorResponse(fmt.Sprintf("unsupported encoding format %s; must be \"base64\" or \"ascii-armor\"", format)), nil
 	}
 
+	// Acquire a read lock before the read operation.
+	b.lock.RLock()
 	keyEntry, err := b.key(ctx, req.Storage, data.Get("name").(string))
+	b.lock.RUnlock()
 	if err != nil {
 		return nil, err
 	}

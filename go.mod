@@ -8,3 +8,5 @@ require (
 	github.com/hashicorp/vault/sdk v0.1.11
 	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c
 )
+
+replace golang.org/x/crypto => github.com/syadav2015/crypto v0.0.0-20190304101048-6881110aac18

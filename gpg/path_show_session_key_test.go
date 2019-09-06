@@ -58,10 +58,10 @@ func TestGPG_ShowSessionKey(t *testing.T) {
 		}
 	}
 
-	showSessionKey("test", encryptedSessionMessageAsciiArmored, "ascii-armor", "", "9:BDF8F7A2A573556C1E7D2FE9ADDCA7188C451C60B5311025F2A900E9FC61809E")
+	showSessionKey("test", encryptedSessionMessageASCIIArmored, "ascii-armor", "", "9:BDF8F7A2A573556C1E7D2FE9ADDCA7188C451C60B5311025F2A900E9FC61809E")
 	showSessionKey("test", encryptedSessionMessageBase64Encoded, "base64", "", "9:EC211D19FA4FFC7F88B6AC6A1112C88032910753AB52FEF10C71D850A721151C")
-	showSessionKey("test", encryptedAndSignedSessionMessageAsciiArmored, "ascii-armor", publicSessionSignerKey, "9:E82F18EF202C2356CB758B56B79D4F4CCAD6CC21FDFBB6867FCFAC25BC10863C")
-	showSessionKey("test", encryptedSessionMessageAsciiArmored[:398], "ascii-armor", "", "9:BDF8F7A2A573556C1E7D2FE9ADDCA7188C451C60B5311025F2A900E9FC61809E")
+	showSessionKey("test", encryptedAndSignedSessionMessageASCIIArmored, "ascii-armor", publicSessionSignerKey, "9:E82F18EF202C2356CB758B56B79D4F4CCAD6CC21FDFBB6867FCFAC25BC10863C")
+	showSessionKey("test", encryptedSessionMessageASCIIArmored[:398], "ascii-armor", "", "9:BDF8F7A2A573556C1E7D2FE9ADDCA7188C451C60B5311025F2A900E9FC61809E")
 	showSessionKey("test", encryptedSessionMessageBase64EncodedWithMultipleKeys, "base64", "", "9:F8054D6D0F6E9C89155B829BC71E0613472EA70E32B9DA7893960536B04BB2BD")
 }
 
@@ -118,21 +118,21 @@ func TestGPG_ShowSessionKeyError(t *testing.T) {
 		}
 	}
 
-	showSessionKeyMustFail("doNotExist", encryptedSessionMessageAsciiArmored, "ascii-armor", "")
-	showSessionKeyMustFail("test", encryptedSessionMessageAsciiArmored, "invalidFormat", "")
-	showSessionKeyMustFail("test", encryptedSessionMessageAsciiArmored[:128], "ascii-armor", "")
-	showSessionKeyMustFail("test", encryptedSessionMessageAsciiArmored[:256], "ascii-armor", "")
-	showSessionKeyMustFail("test", encryptedSessionMessageAsciiArmored[:386], "ascii-armor", "")
+	showSessionKeyMustFail("doNotExist", encryptedSessionMessageASCIIArmored, "ascii-armor", "")
+	showSessionKeyMustFail("test", encryptedSessionMessageASCIIArmored, "invalidFormat", "")
+	showSessionKeyMustFail("test", encryptedSessionMessageASCIIArmored[:128], "ascii-armor", "")
+	showSessionKeyMustFail("test", encryptedSessionMessageASCIIArmored[:256], "ascii-armor", "")
+	showSessionKeyMustFail("test", encryptedSessionMessageASCIIArmored[:386], "ascii-armor", "")
 
 	// Wrong key for the message
-	showSessionKeyMustFail("testGenerated", encryptedSessionMessageAsciiArmored, "ascii-armor", "")
+	showSessionKeyMustFail("testGenerated", encryptedSessionMessageASCIIArmored, "ascii-armor", "")
 
 	// Wrongly encoded
 	showSessionKeyMustFail("test", "Not ASCII armored", "ascii-armor", "")
 	showSessionKeyMustFail("test", "Not base64 encoded", "base64", "")
 
 	// Signer key is not properly ASCII-armored
-	showSessionKeyMustFail("test", encryptedSessionMessageAsciiArmored, "ascii-armor", "Signer key is not ASCII armored")
+	showSessionKeyMustFail("test", encryptedSessionMessageASCIIArmored, "ascii-armor", "Signer key is not ASCII armored")
 
 }
 
@@ -227,7 +227,7 @@ Jt9I
 =+eRe
 -----END PGP PUBLIC KEY BLOCK-----`
 
-const encryptedSessionMessageAsciiArmored = `-----BEGIN PGP MESSAGE-----
+const encryptedSessionMessageASCIIArmored = `-----BEGIN PGP MESSAGE-----
 
 hQEMA923ECy/uCBhAQf8DLagsnoLuM4AyKiTyvZ7uSQTkmOkwXwn1WWsxoKJkzdI
 v2XJ7knQ3UR5nnhI8xVbAnZVZjx8wYaBPUvV2VqhA2sTn36mGlGw43ngDOFB1cKW
@@ -247,7 +247,7 @@ u0pqEkvJwHnIyKThFW5N6OCYjB2pFpVLER7x6RGjuX6tRRYZayzT4sVKGj0Efp6T32EEVPURiJSn
 elpIPEd8+8i/7X0Co6iNFEyucgxhaxN+ujqSxx+6ZIFV4UKC0LFgR2iF99JDAQ6ofxvUtoxMGKON
 WVtrVMjN8Db3KXQ5rt/tyKbTVGXQot6ocSZ2Ae+rnSTiq0boGrWDnuYZHawc16iJhbcP68ERgg==`
 
-const encryptedAndSignedSessionMessageAsciiArmored = `-----BEGIN PGP MESSAGE-----
+const encryptedAndSignedSessionMessageASCIIArmored = `-----BEGIN PGP MESSAGE-----
 
 hQEMA923ECy/uCBhAQf/fWXnkS/aq982Df+9NjqYna9c8aAcQRuhVi0jc0rasRRj
 owPqag1s+0PeaMD07e02+RvWRhDzXnd9OdR4Tm+91e2DFhFQ16OnLf5C/EQhaNk4

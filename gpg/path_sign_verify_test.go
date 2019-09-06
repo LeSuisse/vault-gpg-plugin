@@ -122,7 +122,7 @@ func TestGPG_SignVerify(t *testing.T) {
 	verifyRequest(req, "test", false, true, signature)
 
 	req.Data["algorithm"] = "notexisting"
-	signature = signRequest(req, "test", true, "")
+	signRequest(req, "test", true, "")
 	delete(req.Data, "algorithm")
 
 	// Test format selection

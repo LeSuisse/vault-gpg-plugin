@@ -144,7 +144,7 @@ func serializePrivateWithoutSigning(w io.Writer, e *openpgp.Entity) (err error) 
 	}
 
 	if !foundPrivateKey {
-		return fmt.Errorf("No private key has been found")
+		return fmt.Errorf("no private key has been found")
 	}
 
 	return nil
@@ -165,9 +165,11 @@ func (b *backend) pathKeyRead(ctx context.Context, req *logical.Request, data *f
 
 	var buf bytes.Buffer
 	w, err := armor.Encode(&buf, openpgp.PublicKeyType, nil)
-	err = entity.Serialize(w)
-	w.Close()
 	if err != nil {
+		return nil, err
+	}
+	err = entity.Serialize(w)
+	if err != nil || w.Close() != nil {
 		return nil, err
 	}
 

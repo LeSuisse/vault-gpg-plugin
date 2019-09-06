@@ -14,6 +14,7 @@ script:
   - diff -u <(echo -n) <(gofmt -d -s *.go gpg/)
   - env GO111MODULE=on go vet ./...
   - env GO111MODULE=on go test -race -coverprofile=coverage.txt -covermode=atomic -v ./gpg/
+  - go run honnef.co/go/tools/cmd/staticcheck -checks 'all,-ST1000' ./...
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

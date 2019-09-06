@@ -57,9 +57,9 @@ func TestGPG_Decrypt(t *testing.T) {
 	}
 
 	expected := "QWxwYWNhcwo="
-	decrypt("test", encryptedMessageAsciiArmored, "ascii-armor", "", expected)
+	decrypt("test", encryptedMessageASCIIArmored, "ascii-armor", "", expected)
 	decrypt("test", encryptedMessageBase64Encoded, "base64", "", expected)
-	decrypt("test", encryptedAndSignedMessageAsciiArmored, "ascii-armor", publicSignerKey, expected)
+	decrypt("test", encryptedAndSignedMessageASCIIArmored, "ascii-armor", publicSignerKey, expected)
 }
 
 func TestGPG_DecryptError(t *testing.T) {
@@ -113,24 +113,24 @@ func TestGPG_DecryptError(t *testing.T) {
 		}
 	}
 
-	decryptMustFail("doNotExist", encryptedMessageAsciiArmored, "ascii-armor", "")
-	decryptMustFail("test", encryptedMessageAsciiArmored, "invalidFormat", "")
+	decryptMustFail("doNotExist", encryptedMessageASCIIArmored, "ascii-armor", "")
+	decryptMustFail("test", encryptedMessageASCIIArmored, "invalidFormat", "")
 
 	// Wrong key for the message
-	decryptMustFail("testGenerated", encryptedMessageAsciiArmored, "ascii-armor", "")
+	decryptMustFail("testGenerated", encryptedMessageASCIIArmored, "ascii-armor", "")
 
 	// Wrongly encoded
 	decryptMustFail("test", "Not ASCII armored", "ascii-armor", "")
 	decryptMustFail("test", "Not base64 encoded", "base64", "")
 
 	// Signer key is not properly ASCII-armored
-	decryptMustFail("test", encryptedMessageAsciiArmored, "ascii-armor", "Signer key is not ASCII armored")
+	decryptMustFail("test", encryptedMessageASCIIArmored, "ascii-armor", "Signer key is not ASCII armored")
 
 	// Message is not signed
-	decryptMustFail("test", encryptedMessageAsciiArmored, "ascii-armor", publicSignerKey)
+	decryptMustFail("test", encryptedMessageASCIIArmored, "ascii-armor", publicSignerKey)
 
 	// Message is signed but signature does not match the signer key
-	decryptMustFail("test", encryptedAndSignedMessageAsciiArmored, "ascii-armor", privateDecryptKey)
+	decryptMustFail("test", encryptedAndSignedMessageASCIIArmored, "ascii-armor", privateDecryptKey)
 
 }
 
@@ -225,7 +225,7 @@ Jt9I
 =+eRe
 -----END PGP PUBLIC KEY BLOCK-----`
 
-const encryptedMessageAsciiArmored = `-----BEGIN PGP MESSAGE-----
+const encryptedMessageASCIIArmored = `-----BEGIN PGP MESSAGE-----
 
 hQEMA923ECy/uCBhAQf8DLagsnoLuM4AyKiTyvZ7uSQTkmOkwXwn1WWsxoKJkzdI
 v2XJ7knQ3UR5nnhI8xVbAnZVZjx8wYaBPUvV2VqhA2sTn36mGlGw43ngDOFB1cKW
@@ -245,7 +245,7 @@ u0pqEkvJwHnIyKThFW5N6OCYjB2pFpVLER7x6RGjuX6tRRYZayzT4sVKGj0Efp6T32EEVPURiJSn
 elpIPEd8+8i/7X0Co6iNFEyucgxhaxN+ujqSxx+6ZIFV4UKC0LFgR2iF99JDAQ6ofxvUtoxMGKON
 WVtrVMjN8Db3KXQ5rt/tyKbTVGXQot6ocSZ2Ae+rnSTiq0boGrWDnuYZHawc16iJhbcP68ERgg==`
 
-const encryptedAndSignedMessageAsciiArmored = `-----BEGIN PGP MESSAGE-----
+const encryptedAndSignedMessageASCIIArmored = `-----BEGIN PGP MESSAGE-----
 
 hQEMA923ECy/uCBhAQf/fWXnkS/aq982Df+9NjqYna9c8aAcQRuhVi0jc0rasRRj
 owPqag1s+0PeaMD07e02+RvWRhDzXnd9OdR4Tm+91e2DFhFQ16OnLf5C/EQhaNk4

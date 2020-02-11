@@ -1,4 +1,4 @@
-# Vault Plugin: GPG Secret Backend [![Build Status](https://travis-ci.org/LeSuisse/vault-gpg-plugin.svg?branch=master)](https://travis-ci.org/LeSuisse/vault-gpg-plugin) [![Code coverage](https://codecov.io/gh/LeSuisse/vault-gpg-plugin/branch/master/graph/badge.svg)](https://codecov.io/gh/LeSuisse/vault-gpg-plugin)
+# Vault Plugin: GPG Secret Backend [![Build Status](https://github.com/LeSuisse/vault-gpg-plugin/workflows/CI/badge.svg)](https://github.com/LeSuisse/vault-gpg-plugin/actions?query=workflow%3ACI) [![Code coverage](https://codecov.io/gh/LeSuisse/vault-gpg-plugin/branch/master/graph/badge.svg)](https://codecov.io/gh/LeSuisse/vault-gpg-plugin)
 
 This is a standalone plugin for [Hashicorp Vault](https://www.github.com/hashicorp/vault).
 This plugin handles GPG operations on data-in-transit in a similar fashion to what the

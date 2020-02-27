@@ -39,3 +39,15 @@ jobs:
         run: go run honnef.co/go/tools/cmd/staticcheck -checks 'all,-ST1000' ./...
       - name: Gosec
         run: go run github.com/securego/gosec/cmd/gosec -exclude=G104 ./...
+  build_script:
+    runs-on: ubuntu-18.04
+    name: Build across all supported architectures
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2-beta
+        with:
+          go-version: '^1.14.0'
+      - name: Build
+        run: ./scripts/build.sh
+      - name: Display checksum
+        run: find ./pkg/ -name '*.sha256sum' -exec cat {} \;

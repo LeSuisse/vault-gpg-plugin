@@ -25,7 +25,7 @@ do
         binary_extension=".exe"
     fi
     echo "Building ${supported_arch}…"
-    GOOS="$os" GOARCH="$arch" go build \
+    GOOS="$os" GOARCH="$arch" go build -trimpath \
         -ldflags="-X github.com/LeSuisse/vault-gpg-plugin/version.GitCommit='$(git rev-parse HEAD)'" \
         -o "pkg/${os}_${arch}/vault-gpg-plugin${binary_extension}"
 done

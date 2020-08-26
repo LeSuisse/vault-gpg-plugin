@@ -23,6 +23,20 @@ jobs:
       - uses: codecov/codecov-action@v1.0.13
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+  api_test:
+    runs-on: ubuntu-18.04
+    name: Run Python API tests
+    steps:
+      - uses: actions/checkout@v2.3.1
+      - uses: actions/setup-go@v2.1.1
+        with:
+          go-version: '^1.15.0'
+      - uses: innovationnorway/setup-vault@v1.0.2
+      - uses: actions/setup-python@v2
+      - name: Install Tox
+        run: pip install tox
+      - name: Run test script
+        run: ./test.sh
   static_analysis:
     runs-on: ubuntu-18.04
     name: Run static analysis and linting

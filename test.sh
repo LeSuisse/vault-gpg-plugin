@@ -10,4 +10,7 @@ VAULT_PID=$!
 vault login root
 vault secrets enable vault-gpg-plugin
 tox
+TOX_RETCODE=$?
 kill -2 $VAULT_PID
+echo "Return code: $TOX_RETCODE"
+exit $TOX_RETCODE

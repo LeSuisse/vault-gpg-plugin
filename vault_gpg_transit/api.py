@@ -41,10 +41,10 @@ class OpenPGP(Transit):
         _, key_bits = key_type.split('-')
         params = {
             'comment': '',
-            'key_bits': key_bits,
             'email': '',
             'exportable': False,
             'generate': True,
+            'key_bits': key_bits,
             'name': name,
             'real_name': '',
         }

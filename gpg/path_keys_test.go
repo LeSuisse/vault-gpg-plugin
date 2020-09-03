@@ -2,8 +2,9 @@ package gpg
 
 import (
 	"context"
-	"github.com/hashicorp/vault/sdk/logical"
 	"testing"
+
+	"github.com/hashicorp/vault/sdk/logical"
 )
 
 func TestGPG_CreateNotGeneratedKeyWithoutKeyError(t *testing.T) {
@@ -50,6 +51,36 @@ func TestGPG_CreateErrorGeneratedKeyWithInvalidKey(t *testing.T) {
 	}
 	if !response.IsError() {
 		t.Fatal("Key was not a ASCII-armored key but has been created")
+	}
+}
+
+func TestGPG_CreateErrorGeneratedDuplicateKey(t *testing.T) {
+	storage := &logical.InmemStorage{}
+
+	b := Backend()
+
+	req := &logical.Request{
+		Storage:   storage,
+		Operation: logical.UpdateOperation,
+		Path:      "keys/test",
+		Data:      map[string]interface{}{},
+	}
+	response, err := b.HandleRequest(context.Background(), req)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if response.IsError() {
+		t.Fatal("Key was not created")
+	}
+
+	response, err = b.HandleRequest(context.Background(), req)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !response.IsError() {
+		t.Fatal("Duplicate key has been created")
 	}
 }
 

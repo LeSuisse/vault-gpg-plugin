@@ -5,13 +5,14 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"io"
+	"strings"
+
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/packet"
-	"io"
-	"strings"
 )
 
 func pathListKeys(b *backend) *framework.Path {
@@ -191,6 +192,14 @@ func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data 
 	exportable := data.Get("exportable").(bool)
 	generate := data.Get("generate").(bool)
 	key := data.Get("key").(string)
+
+	resp, err := b.pathKeyRead(ctx, req, data)
+	if err != nil {
+		return logical.ErrorResponse(err.Error()), nil
+	}
+	if resp != nil {
+		return logical.ErrorResponse("key already exists"), nil
+	}
 
 	var buf bytes.Buffer
 	switch generate {

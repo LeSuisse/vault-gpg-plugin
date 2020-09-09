@@ -4,9 +4,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/LeSuisse/vault-gpg-plugin/gpg"
 	"github.com/hashicorp/vault/api"
 	"github.com/hashicorp/vault/sdk/plugin"
+	"github.com/trishankatdatadog/vault-gpg-plugin/gpg"
 )
 
 func main() {

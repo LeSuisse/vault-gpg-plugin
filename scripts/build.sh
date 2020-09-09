@@ -26,7 +26,7 @@ do
     fi
     echo "Building ${supported_arch}…"
     GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 go build -trimpath \
-        -ldflags="-X github.com/LeSuisse/vault-gpg-plugin/version.GitCommit='$(git rev-parse HEAD)'" \
+        -ldflags="-X github.com/trishankatdatadog/vault-gpg-plugin/version.GitCommit='$(git rev-parse HEAD)'" \
         -o "pkg/${os}_${arch}/vault-gpg-plugin${binary_extension}"
 done
 

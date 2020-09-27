@@ -2,6 +2,7 @@ package gpg
 
 import (
 	"context"
+	"github.com/hashicorp/vault/sdk/helper/locksutil"
 
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
@@ -38,11 +39,13 @@ func Backend() *backend {
 		Secrets:     []*framework.Secret{},
 		BackendType: logical.TypeLogical,
 	}
+	b.keyLocks = locksutil.CreateLocks()
 	return &b
 }
 
 type backend struct {
 	*framework.Backend
+	keyLocks []*locksutil.LockEntry
 }
 
 const backendHelp = `

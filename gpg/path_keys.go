@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"github.com/hashicorp/vault/sdk/helper/locksutil"
 	"io"
 	"strings"
 
@@ -193,6 +194,10 @@ func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data 
 	generate := data.Get("generate").(bool)
 	key := data.Get("key").(string)
 
+	lock := locksutil.LockForKey(b.keyLocks, name)
+	lock.Lock()
+	defer lock.Unlock()
+
 	resp, err := b.pathKeyRead(ctx, req, data)
 	if err != nil {
 		return logical.ErrorResponse(err.Error()), nil
@@ -246,7 +251,13 @@ func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data 
 }
 
 func (b *backend) pathKeyDelete(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	err := req.Storage.Delete(ctx, "key/"+data.Get("name").(string))
+	name := data.Get("name").(string)
+
+	lock := locksutil.LockForKey(b.keyLocks, name)
+	lock.Lock()
+	defer lock.Unlock()
+
+	err := req.Storage.Delete(ctx, "key/"+name)
 	if err != nil {
 		return nil, err
 	}

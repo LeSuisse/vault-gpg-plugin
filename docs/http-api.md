@@ -15,7 +15,8 @@ Since it is possible to mount secret backends at any location, please update you
 
 ## Create Key
 
-This endpoint creates a new named GPG key.
+This endpoint creates a new named GPG key. If a GPG key already exists with this name, this endpoint will not overwrite it;
+it must be deleted first.
 
 | Method   | Path                         | Produces               |
 | :------- | :--------------------------- | :--------------------- |

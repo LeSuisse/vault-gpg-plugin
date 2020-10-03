@@ -2,6 +2,7 @@ package gpg
 
 import (
 	"context"
+
 	"github.com/hashicorp/vault/sdk/helper/locksutil"
 
 	"github.com/hashicorp/vault/sdk/framework"
@@ -23,6 +24,10 @@ func Backend() *backend {
 	b.Backend = &framework.Backend{
 		Help: backendHelp,
 		Paths: []*framework.Path{
+			// List more specific subkey routes first.
+			pathSubkeysSign(&b),
+			pathSubkeysRD(&b),
+			pathSubkeysCL(&b),
 			pathKeys(&b),
 			pathListKeys(&b),
 			pathExportKeys(&b),

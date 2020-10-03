@@ -3,11 +3,12 @@ package gpg
 import (
 	"context"
 	"encoding/hex"
-	"github.com/hashicorp/vault/sdk/logical"
-	"golang.org/x/crypto/openpgp"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/hashicorp/vault/sdk/logical"
+	"golang.org/x/crypto/openpgp"
 )
 
 func TestBackend_CRUD(t *testing.T) {
@@ -24,10 +25,10 @@ func TestBackend_CRUD(t *testing.T) {
 	testAccStepCreateKey(t, b, storage, "test", keyData, false)
 	testAccStepCreateKey(t, b, storage, "test2", keyData, false)
 	testAccStepCreateKey(t, b, storage, "test3", keyData, false)
-	testAccStepReadKey(t, b, storage, "test", keyData)
+	testAccStepReadKey(t, b, storage, "test", keyData, false)
 	testAccStepDeleteKey(t, b, storage, "test")
 	testAccStepListKey(t, b, storage, []string{"test2", "test3"})
-	testAccStepReadKey(t, b, storage, "test", nil)
+	testAccStepReadKey(t, b, storage, "test", nil, true)
 }
 
 func TestBackend_CRUDImportedKey(t *testing.T) {
@@ -40,10 +41,11 @@ func TestBackend_CRUDImportedKey(t *testing.T) {
 	}
 
 	testAccStepCreateKey(t, b, storage, "test", keyData, false)
-	testAccStepReadKey(t, b, storage, "test", keyData)
+	testAccStepReadKey(t, b, storage, "test", keyData, false)
 	testAccStepListKey(t, b, storage, []string{"test"})
 	testAccStepDeleteKey(t, b, storage, "test")
-	testAccStepReadKey(t, b, storage, "test", nil)
+	testAccStepListKey(t, b, storage, []string{})
+	testAccStepReadKey(t, b, storage, "test", nil, true)
 }
 
 func TestBackend_InvalidCharIdentity(t *testing.T) {
@@ -104,7 +106,7 @@ func testAccStepCreateKey(t *testing.T, b logical.Backend, s logical.Storage, na
 	}
 }
 
-func testAccStepReadKey(t *testing.T, b logical.Backend, storage logical.Storage, name string, keyData map[string]interface{}) {
+func testAccStepReadKey(t *testing.T, b logical.Backend, storage logical.Storage, name string, keyData map[string]interface{}, expectFail bool) {
 	response, err := b.HandleRequest(context.Background(), &logical.Request{
 		Operation: logical.ReadOperation,
 		Path:      "keys/" + name,
@@ -112,11 +114,15 @@ func testAccStepReadKey(t *testing.T, b logical.Backend, storage logical.Storage
 		Storage:   storage,
 	})
 
-	if err != nil {
-		t.Error(err)
-	}
-	if response.IsError() {
-		t.Error(response.Error())
+	if !expectFail {
+		if err != nil {
+			t.Error(err)
+		}
+		if response.IsError() {
+			t.Error(response.Error())
+		}
+	} else {
+		return
 	}
 
 	if response == nil {
@@ -188,9 +194,16 @@ func testAccStepListKey(t *testing.T, b logical.Backend, storage logical.Storage
 		t.Error(response.Error())
 	}
 
-	respKeys := response.Data["keys"].([]string)
-	if !reflect.DeepEqual(respKeys, names) {
-		t.Errorf("does not match: %#v %#v", respKeys, names)
+	respKeys := response.Data["keys"]
+	if len(names) > 0 {
+		respKeysSlice := respKeys.([]string)
+		if !reflect.DeepEqual(respKeysSlice, names) {
+			t.Errorf("does not match: %#v %#v", respKeys, names)
+		}
+	} else {
+		if respKeys != nil {
+			t.Errorf("keys not empty: %#v", respKeys)
+		}
 	}
 }
 

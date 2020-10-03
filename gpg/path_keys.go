@@ -153,17 +153,30 @@ func serializePrivateWithoutSigning(w io.Writer, e *openpgp.Entity) (err error) 
 	return nil
 }
 
-func (b *backend) pathKeyRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	entry, err := b.key(ctx, req.Storage, data.Get("name").(string))
+func (b *backend) readKey(ctx context.Context, storage logical.Storage, name string) (entity *openpgp.Entity, exportable bool, err error) {
+	entry, err := b.key(ctx, storage, name)
 	if err != nil {
-		return nil, err
+		return
 	}
 	if entry == nil {
-		return nil, nil
+		return
 	}
-	entity, err := b.entity(entry)
+	exportable = entry.Exportable
+	entity, err = b.entity(entry)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func (b *backend) pathKeyRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	name := data.Get("name").(string)
+	entity, exportable, err := b.readKey(ctx, req.Storage, name)
 	if err != nil {
 		return nil, err
+	}
+	if entity == nil {
+		return logical.ErrorResponse("master key does not exist"), nil
 	}
 
 	var buf bytes.Buffer
@@ -180,7 +193,7 @@ func (b *backend) pathKeyRead(ctx context.Context, req *logical.Request, data *f
 		Data: map[string]interface{}{
 			"fingerprint": hex.EncodeToString(entity.PrimaryKey.Fingerprint[:]),
 			"public_key":  buf.String(),
-			"exportable":  entry.Exportable,
+			"exportable":  exportable,
 		},
 	}, nil
 }
@@ -199,12 +212,12 @@ func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data 
 	lock.Lock()
 	defer lock.Unlock()
 
-	resp, err := b.pathKeyRead(ctx, req, data)
+	entity, _, err := b.readKey(ctx, req.Storage, name)
 	if err != nil {
-		return logical.ErrorResponse(err.Error()), nil
+		return nil, err
 	}
-	if resp != nil {
-		return logical.ErrorResponse("key already exists"), nil
+	if entity != nil {
+		return logical.ErrorResponse("master key already exists"), nil
 	}
 
 	var buf bytes.Buffer

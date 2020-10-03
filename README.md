@@ -16,8 +16,6 @@ This is a [Vault plugin](https://www.vaultproject.io/docs/internals/plugins.html
 of Vault to use it.
 
 To learn how to use plugins with Vault, see the [documentation on plugin backends](https://www.vaultproject.io/docs/plugin)
-on the official Vault website. You can download and decompress the pre-compiled plugin binary for your architecture
-from the [latest release on GitHub](https://github.com/trishankatdatadog/vault-gpg-plugin/releases). SHA256 checksum for the
-pre-compiled plugin binary is also provided in the archive so it can be registered to your Vault plugin catalog.
+on the official Vault website.
 
 Once mounted in Vault, this plugin exposes [this HTTP API](docs/http-api.md).

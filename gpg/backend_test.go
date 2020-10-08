@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/vault/sdk/logical"
 	"golang.org/x/crypto/openpgp"
@@ -46,6 +47,75 @@ func TestBackend_CRUDImportedKey(t *testing.T) {
 	testAccStepDeleteKey(t, b, storage, "test")
 	testAccStepListKey(t, b, storage, []string{})
 	testAccStepReadKey(t, b, storage, "test", nil, true)
+}
+
+func TestBackend_Signing(t *testing.T) {
+	b, storage := getTestBackend(t)
+
+	keyData := map[string]interface{}{
+		"real_name":  "Vault",
+		"email":      "vault@example.com",
+		"comment":    "Comment",
+		"key_bits":   4096,
+		"exportable": true,
+	}
+	base64InputData := "bXkgc2VjcmV0IGRhdGEK"
+	otherBase64InputData := "c29tZSBvdGhlciBkYXRhCg=="
+	masterName := "test"
+	testAccStepCreateKey(t, b, storage, masterName, keyData, false)
+
+	t.Run("signing with master key", func(t *testing.T) {
+		signature := testAccStepSign(t, b, storage, masterName, base64InputData)
+		testAccStepVerify(t, b, storage, masterName, map[string]interface{}{
+			"input":     base64InputData,
+			"signature": signature,
+		}, true)
+		testAccStepVerify(t, b, storage, masterName, map[string]interface{}{
+			"input":     otherBase64InputData,
+			"signature": signature,
+		}, false)
+	})
+
+	t.Run("signing with subkey", func(t *testing.T) {
+		subkeyRespData := testAccStepCreateSubkey(t, b, storage, masterName, map[string]interface{}{})
+		subkeyID := subkeyRespData["key_id"].(string)
+		testAccStepReadSubkey(t, b, storage, masterName, subkeyID)
+		signature := testAccStepSignWithSubkey(t, b, storage, masterName, subkeyID, map[string]interface{}{
+			"input": base64InputData,
+		})
+		testAccStepVerify(t, b, storage, masterName, map[string]interface{}{
+			"input":     base64InputData,
+			"signature": signature,
+		}, true)
+		testAccStepVerify(t, b, storage, masterName, map[string]interface{}{
+			"input":     otherBase64InputData,
+			"signature": signature,
+		}, false)
+	})
+
+	t.Run("signing after expiration", func(t *testing.T) {
+		expireAfterSeconds := 1
+		subkeyRespData := testAccStepCreateSubkey(t, b, storage, masterName, map[string]interface{}{
+			"expires": expireAfterSeconds, // 1 second
+		})
+		subkeyID := subkeyRespData["key_id"].(string)
+		testAccStepReadSubkey(t, b, storage, masterName, subkeyID)
+		signature := testAccStepSignWithSubkey(t, b, storage, masterName, subkeyID, map[string]interface{}{
+			"input":   base64InputData,
+			"expires": expireAfterSeconds,
+		})
+
+		// TODO
+		t.Skipf("re-enable this test once keys and/or signatures expire")
+
+		// Sleep for long enough that the subkey and the signature *should have* expired
+		time.Sleep(time.Duration(3*expireAfterSeconds) * time.Second)
+
+		testAccStepVerify(t, b, storage, masterName, map[string]interface{}{
+			"input":     base64InputData,
+			"signature": signature,
+		}, false)
+	})
 }
 
 func TestBackend_InvalidCharIdentity(t *testing.T) {
@@ -103,6 +173,11 @@ func testAccStepCreateKey(t *testing.T, b logical.Backend, s logical.Storage, na
 		if resp.IsError() {
 			t.Error(resp.Error())
 		}
+	} else {
+		if err == nil && resp.Data["error"] == nil {
+			t.Error("expected error but no error was returned")
+		}
+		return
 	}
 }
 
@@ -122,6 +197,9 @@ func testAccStepReadKey(t *testing.T, b logical.Backend, storage logical.Storage
 			t.Error(response.Error())
 		}
 	} else {
+		if err == nil && response.Data["error"] == nil {
+			t.Error("expected error but no error was returned")
+		}
 		return
 	}
 
@@ -204,6 +282,85 @@ func testAccStepListKey(t *testing.T, b logical.Backend, storage logical.Storage
 		if respKeys != nil {
 			t.Errorf("keys not empty: %#v", respKeys)
 		}
+	}
+}
+
+func testAccStepCreateSubkey(t *testing.T, b logical.Backend, s logical.Storage, masterName string, subkeyData map[string]interface{}) map[string]interface{} {
+	resp, err := b.HandleRequest(context.Background(), &logical.Request{
+		Operation: logical.UpdateOperation,
+		Path:      "keys/" + masterName + "/subkeys",
+		Data:      subkeyData,
+		Storage:   s,
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	return resp.Data
+}
+
+func testAccStepReadSubkey(t *testing.T, b logical.Backend, s logical.Storage, masterName string, subkeyName string) {
+	resp, err := b.HandleRequest(context.Background(), &logical.Request{
+		Operation: logical.ReadOperation,
+		Path:      "keys/" + masterName + "/subkeys/" + subkeyName,
+		Storage:   s,
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	keyType := resp.Data["key_type"].(string)
+	if keyType != "rsa" {
+		t.Errorf("expected key_type to be rsa, but got %s", keyType)
+	}
+	capabilities := resp.Data["capabilities"].([]string)
+	if len(capabilities) != 1 {
+		t.Errorf("expected capabilities to have one entry, but got %d", len(capabilities))
+	}
+	if capabilities[0] != "sign" {
+		t.Errorf("expected capabilities to have one entry of 'sign', but got %s", capabilities[0])
+	}
+}
+
+func testAccStepSign(t *testing.T, b logical.Backend, s logical.Storage, masterName string, base64Input string) string {
+	resp, err := b.HandleRequest(context.Background(), &logical.Request{
+		Operation: logical.UpdateOperation,
+		Path:      "sign/" + masterName,
+		Data: map[string]interface{}{
+			"input": base64Input,
+		},
+		Storage: s,
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	return resp.Data["signature"].(string)
+}
+
+func testAccStepSignWithSubkey(t *testing.T, b logical.Backend, s logical.Storage, masterName string, subkeyName string, signData map[string]interface{}) string {
+	resp, err := b.HandleRequest(context.Background(), &logical.Request{
+		Operation: logical.UpdateOperation,
+		Path:      "sign/" + masterName + "/subkeys/" + subkeyName,
+		Data:      signData,
+		Storage:   s,
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	return resp.Data["signature"].(string)
+}
+
+func testAccStepVerify(t *testing.T, b logical.Backend, s logical.Storage, masterName string, verifyData map[string]interface{}, expectedValid bool) {
+	resp, err := b.HandleRequest(context.Background(), &logical.Request{
+		Operation: logical.UpdateOperation,
+		Path:      "verify/" + masterName,
+		Data:      verifyData,
+		Storage:   s,
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	actualValid := resp.Data["valid"]
+	if actualValid != expectedValid {
+		t.Errorf("expected verify operation to return valid=%v but got valid=%v", expectedValid, actualValid)
 	}
 }
 

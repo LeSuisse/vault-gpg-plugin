@@ -251,12 +251,13 @@ func (b *backend) pathVerifyWrite(ctx context.Context, req *logical.Request, dat
 
 	signature := strings.NewReader(data.Get("signature").(string))
 	message := bytes.NewReader(input)
+	config := packet.Config{}
 	switch format {
 	case "base64":
 		decoder := base64.NewDecoder(base64.StdEncoding, signature)
-		_, err = openpgp.CheckDetachedSignature(keyring, message, decoder)
+		_, err = openpgp.CheckDetachedSignature(keyring, message, decoder, &config)
 	case "ascii-armor":
-		_, err = openpgp.CheckArmoredDetachedSignature(keyring, message, signature)
+		_, err = openpgp.CheckArmoredDetachedSignature(keyring, message, signature, &config)
 	}
 
 	resp := &logical.Response{
@@ -321,7 +322,8 @@ func (b *backend) pathSubkeySign(ctx context.Context, req *logical.Request, data
 		return logical.ErrorResponse(fmt.Sprintf("unsupported algorithm %s", algorithm)), nil
 	}
 
-	config.SigLifetimeSecs = uint32(data.Get("expires").(int))
+	expires := uint32(data.Get("expires").(int))
+	config.SigLifetimeSecs = expires
 
 	var signature bytes.Buffer
 	format := data.Get("format").(string)

@@ -10,4 +10,4 @@ require (
 	honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc
 )
 
-replace golang.org/x/crypto => github.com/trishankatdatadog/crypto v0.0.0-20201003183309-2dc30c1240f0
+replace golang.org/x/crypto => /Users/trishank.kuppusamy/go/src/github.com/DataDog/crypto

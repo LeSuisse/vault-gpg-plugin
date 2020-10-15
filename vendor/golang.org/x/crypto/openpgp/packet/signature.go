@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"golang.org/x/crypto/openpgp/errors"
+	"golang.org/x/crypto/openpgp/internal/encoding"
 	"golang.org/x/crypto/openpgp/s2k"
 )
 
@@ -42,9 +43,10 @@ type Signature struct {
 	HashTag      [2]byte
 	CreationTime time.Time
 
-	RSASignature         parsedMPI
-	DSASigR, DSASigS     parsedMPI
-	ECDSASigR, ECDSASigS parsedMPI
+	RSASignature         encoding.Field
+	DSASigR, DSASigS     encoding.Field
+	ECDSASigR, ECDSASigS encoding.Field
+	EdDSASigR, EdDSASigS encoding.Field
 
 	// rawSubpackets contains the unparsed subpackets, in order.
 	rawSubpackets []outputSubpacket
@@ -54,6 +56,7 @@ type Signature struct {
 
 	SigLifetimeSecs, KeyLifetimeSecs                        *uint32
 	PreferredSymmetric, PreferredHash, PreferredCompression []uint8
+	PreferredAEAD                                           []uint8
 	IssuerKeyId                                             *uint64
 	IsPrimaryId                                             *bool
 
@@ -67,9 +70,9 @@ type Signature struct {
 	RevocationReason     *uint8
 	RevocationReasonText string
 
-	// MDC is set if this signature has a feature packet that indicates
-	// support for MDC subpackets.
-	MDC bool
+	// MDC (resp. AEAD) is set if this signature has a feature subpacket that
+	// indicates support for MDC (resp. AEAD) packets.
+	MDC, AEAD bool
 
 	// EmbeddedSignature, if non-nil, is a signature of the parent key, by
 	// this key. This prevents an attacker from claiming another's signing
@@ -98,7 +101,7 @@ func (sig *Signature) parse(r io.Reader) (err error) {
 	sig.SigType = SignatureType(buf[0])
 	sig.PubKeyAlgo = PublicKeyAlgorithm(buf[1])
 	switch sig.PubKeyAlgo {
-	case PubKeyAlgoRSA, PubKeyAlgoRSASignOnly, PubKeyAlgoDSA, PubKeyAlgoECDSA:
+	case PubKeyAlgoRSA, PubKeyAlgoRSASignOnly, PubKeyAlgoDSA, PubKeyAlgoECDSA, PubKeyAlgoEdDSA:
 	default:
 		err = errors.UnsupportedError("public key algorithm " + strconv.Itoa(int(sig.PubKeyAlgo)))
 		return
@@ -156,16 +159,33 @@ func (sig *Signature) parse(r io.Reader) (err error) {
 
 	switch sig.PubKeyAlgo {
 	case PubKeyAlgoRSA, PubKeyAlgoRSASignOnly:
-		sig.RSASignature.bytes, sig.RSASignature.bitLength, err = readMPI(r)
+		sig.RSASignature = new(encoding.MPI)
+		_, err = sig.RSASignature.ReadFrom(r)
 	case PubKeyAlgoDSA:
-		sig.DSASigR.bytes, sig.DSASigR.bitLength, err = readMPI(r)
-		if err == nil {
-			sig.DSASigS.bytes, sig.DSASigS.bitLength, err = readMPI(r)
+		sig.DSASigR = new(encoding.MPI)
+		if _, err = sig.DSASigR.ReadFrom(r); err != nil {
+			return
 		}
+
+		sig.DSASigS = new(encoding.MPI)
+		_, err = sig.DSASigS.ReadFrom(r)
 	case PubKeyAlgoECDSA:
-		sig.ECDSASigR.bytes, sig.ECDSASigR.bitLength, err = readMPI(r)
-		if err == nil {
-			sig.ECDSASigS.bytes, sig.ECDSASigS.bitLength, err = readMPI(r)
+		sig.ECDSASigR = new(encoding.MPI)
+		if _, err = sig.ECDSASigR.ReadFrom(r); err != nil {
+			return
+		}
+
+		sig.ECDSASigS = new(encoding.MPI)
+		_, err = sig.ECDSASigS.ReadFrom(r)
+	case PubKeyAlgoEdDSA:
+		sig.EdDSASigR = new(encoding.MPI)
+		if _, err = sig.EdDSASigR.ReadFrom(r); err != nil {
+			return
+		}
+
+		sig.EdDSASigS = new(encoding.MPI)
+		if _, err = sig.EdDSASigS.ReadFrom(r); err != nil {
+			return
 		}
 	default:
 		panic("unreachable")
@@ -205,6 +225,7 @@ const (
 	reasonForRevocationSubpacket signatureSubpacketType = 29
 	featuresSubpacket            signatureSubpacketType = 30
 	embeddedSignatureSubpacket   signatureSubpacketType = 32
+	prefAeadAlgosSubpacket       signatureSubpacketType = 34
 )
 
 // parseSignatureSubpacket parses a single subpacket. len(subpacket) is >= 1.
@@ -289,6 +310,13 @@ func parseSignatureSubpacket(sig *Signature, subpacket []byte, isHashed bool) (r
 		}
 		sig.PreferredSymmetric = make([]byte, len(subpacket))
 		copy(sig.PreferredSymmetric, subpacket)
+	case prefAeadAlgosSubpacket:
+		// Preferred symmetric algorithms, section 5.2.3.8
+		if !isHashed {
+			return
+		}
+		sig.PreferredAEAD = make([]byte, len(subpacket))
+		copy(sig.PreferredAEAD, subpacket)
 	case issuerSubpacket:
 		// Issuer, section 5.2.3.5
 		if len(subpacket) != 8 {
@@ -361,9 +389,18 @@ func parseSignatureSubpacket(sig *Signature, subpacket []byte, isHashed bool) (r
 	case featuresSubpacket:
 		// Features subpacket, section 5.2.3.24 specifies a very general
 		// mechanism for OpenPGP implementations to signal support for new
-		// features. In practice, the subpacket is used exclusively to
-		// indicate support for MDC-protected encryption.
-		sig.MDC = len(subpacket) >= 1 && subpacket[0]&1 == 1
+		// features.
+		if !isHashed {
+			return
+		}
+		if len(subpacket) > 0 {
+			if subpacket[0]&0x01 != 0 {
+				sig.MDC = true
+			}
+			if subpacket[0]&0x02 != 0 {
+				sig.AEAD = true
+			}
+		}
 	case embeddedSignatureSubpacket:
 		// Only usage is in signatures that cross-certify
 		// signing subkeys. section 5.2.3.26 describes the
@@ -454,13 +491,16 @@ func serializeSubpackets(to []byte, subpackets []outputSubpacket, hashed bool) {
 	return
 }
 
-// KeyExpired returns whether sig is a self-signature of a key that has
-// expired.
-func (sig *Signature) KeyExpired(currentTime time.Time) bool {
-	if sig.KeyLifetimeSecs == nil {
+// SigExpired returns whether sig is a signature that has expired or is created
+// in the future.
+func (sig *Signature) SigExpired(currentTime time.Time) bool {
+	if sig.CreationTime.After(currentTime) {
+		return true
+	}
+	if sig.SigLifetimeSecs == nil {
 		return false
 	}
-	expiry := sig.CreationTime.Add(time.Duration(*sig.KeyLifetimeSecs) * time.Second)
+	expiry := sig.CreationTime.Add(time.Duration(*sig.SigLifetimeSecs) * time.Second)
 	return currentTime.After(expiry)
 }
 
@@ -509,11 +549,13 @@ func (sig *Signature) signPrepareHash(h hash.Hash) (digest []byte, err error) {
 // On success, the signature is stored in sig. Call Serialize to write it out.
 // If config is nil, sensible defaults will be used.
 func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err error) {
-	outSubpackets, err := sig.buildSubpackets()
-	if err != nil {
-		return
+	if priv.Dummy() {
+		return errors.ErrDummyPrivateKey("dummy key found")
 	}
-	sig.outSubpackets = outSubpackets
+	sig.outSubpackets, err = sig.buildSubpackets()
+	if err != nil {
+		return err
+	}
 	digest, err := sig.signPrepareHash(h)
 	if err != nil {
 		return
@@ -522,8 +564,10 @@ func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err e
 	switch priv.PubKeyAlgo {
 	case PubKeyAlgoRSA, PubKeyAlgoRSASignOnly:
 		// supports both *rsa.PrivateKey and crypto.Signer
-		sig.RSASignature.bytes, err = priv.PrivateKey.(crypto.Signer).Sign(config.Random(), digest, sig.Hash)
-		sig.RSASignature.bitLength = uint16(8 * len(sig.RSASignature.bytes))
+		sigdata, err := priv.PrivateKey.(crypto.Signer).Sign(config.Random(), digest, sig.Hash)
+		if err == nil {
+			sig.RSASignature = encoding.NewMPI(sigdata)
+		}
 	case PubKeyAlgoDSA:
 		dsaPriv := priv.PrivateKey.(*dsa.PrivateKey)
 
@@ -534,10 +578,8 @@ func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err e
 		}
 		r, s, err := dsa.Sign(config.Random(), dsaPriv, digest)
 		if err == nil {
-			sig.DSASigR.bytes = r.Bytes()
-			sig.DSASigR.bitLength = uint16(8 * len(sig.DSASigR.bytes))
-			sig.DSASigS.bytes = s.Bytes()
-			sig.DSASigS.bitLength = uint16(8 * len(sig.DSASigS.bytes))
+			sig.DSASigR = new(encoding.MPI).SetBig(r)
+			sig.DSASigS = new(encoding.MPI).SetBig(s)
 		}
 	case PubKeyAlgoECDSA:
 		var r, s *big.Int
@@ -552,8 +594,14 @@ func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err e
 			}
 		}
 		if err == nil {
-			sig.ECDSASigR = fromBig(r)
-			sig.ECDSASigS = fromBig(s)
+			sig.ECDSASigR = new(encoding.MPI).SetBig(r)
+			sig.ECDSASigS = new(encoding.MPI).SetBig(s)
+		}
+	case PubKeyAlgoEdDSA:
+		sigdata, err := priv.PrivateKey.(crypto.Signer).Sign(config.Random(), digest, crypto.Hash(0))
+		if err == nil {
+			sig.EdDSASigR = encoding.NewMPI(sigdata[:32])
+			sig.EdDSASigS = encoding.NewMPI(sigdata[32:])
 		}
 	default:
 		err = errors.UnsupportedError("public key algorithm: " + strconv.Itoa(int(sig.PubKeyAlgo)))
@@ -580,6 +628,9 @@ func unwrapECDSASig(b []byte) (r, s *big.Int, err error) {
 // Serialize to write it out.
 // If config is nil, sensible defaults will be used.
 func (sig *Signature) SignUserId(id string, pub *PublicKey, priv *PrivateKey, config *Config) error {
+	if priv.Dummy() {
+		return errors.ErrDummyPrivateKey("dummy key found")
+	}
 	h, err := userIdSignatureHash(id, pub, sig.Hash)
 	if err != nil {
 		return err
@@ -587,33 +638,41 @@ func (sig *Signature) SignUserId(id string, pub *PublicKey, priv *PrivateKey, co
 	return sig.Sign(h, priv, config)
 }
 
-// SignSubKey computes a signature from masterKey, asserting that it owns this subKey. On
-// success, the signature is stored in sig. Call Serialize to write it out.
+// CrossSignKey computes a signature from signingKey on pub hashed using hashKey. On success,
+// the signature is stored in sig. Call Serialize to write it out.
 // If config is nil, sensible defaults will be used.
-func (sig *Signature) SignSubKey(subKey *PublicKey, masterKey *PrivateKey, config *Config) error {
-	h, err := keySignatureHash(&masterKey.PublicKey, subKey, sig.Hash)
+func (sig *Signature) CrossSignKey(pub *PublicKey, hashKey *PublicKey, signingKey *PrivateKey,
+	config *Config) error {
+	h, err := keySignatureHash(hashKey, pub, sig.Hash)
 	if err != nil {
 		return err
 	}
-	return sig.Sign(h, masterKey, config)
+	return sig.Sign(h, signingKey, config)
 }
 
-// SignKey is an alias to SignSubKey which is here to maintain backwards-incompatibility,
-// but which should be considered DEPRECATED, and may be removed in the future.
-func (sig *Signature) SignKey(subKey *PublicKey, masterKey *PrivateKey, config *Config) error {
-	return sig.SignSubKey(subKey, masterKey, config)
-}
-
-// SignMasterKey computes a signature from subKey, asserting that it is owned by this masterKey. On
+// SignKey computes a signature from priv, asserting that pub is a subkey. On
 // success, the signature is stored in sig. Call Serialize to write it out.
 // If config is nil, sensible defaults will be used.
-// https://www.gnupg.org/faq/subkey-cross-certify.html
-func (sig *Signature) SignMasterKey(masterKey *PublicKey, subKey *PrivateKey, config *Config) error {
-	h, err := keySignatureHash(masterKey, &subKey.PublicKey, sig.Hash)
+func (sig *Signature) SignKey(pub *PublicKey, priv *PrivateKey, config *Config) error {
+	if priv.Dummy() {
+		return errors.ErrDummyPrivateKey("dummy key found")
+	}
+	h, err := keySignatureHash(&priv.PublicKey, pub, sig.Hash)
 	if err != nil {
 		return err
 	}
-	return sig.Sign(h, subKey, config)
+	return sig.Sign(h, priv, config)
+}
+
+// RevokeKey computes a revocation signature of pub using priv. On success, the signature is
+// stored in sig. Call Serialize to write it out.
+// If config is nil, sensible defaults will be used.
+func (sig *Signature) RevokeKey(pub *PublicKey, priv *PrivateKey, config *Config) error {
+	h, err := keyRevocationHash(pub, sig.Hash)
+	if err != nil {
+		return err
+	}
+	return sig.Sign(h, priv, config)
 }
 
 // Serialize marshals sig to w. Sign, SignUserId or SignKey must have been
@@ -622,20 +681,23 @@ func (sig *Signature) Serialize(w io.Writer) (err error) {
 	if len(sig.outSubpackets) == 0 {
 		sig.outSubpackets = sig.rawSubpackets
 	}
-	if sig.RSASignature.bytes == nil && sig.DSASigR.bytes == nil && sig.ECDSASigR.bytes == nil {
+	if sig.RSASignature == nil && sig.DSASigR == nil && sig.ECDSASigR == nil && sig.EdDSASigR == nil {
 		return errors.InvalidArgumentError("Signature: need to call Sign, SignUserId or SignKey before Serialize")
 	}
 
 	sigLength := 0
 	switch sig.PubKeyAlgo {
 	case PubKeyAlgoRSA, PubKeyAlgoRSASignOnly:
-		sigLength = 2 + len(sig.RSASignature.bytes)
+		sigLength = int(sig.RSASignature.EncodedLength())
 	case PubKeyAlgoDSA:
-		sigLength = 2 + len(sig.DSASigR.bytes)
-		sigLength += 2 + len(sig.DSASigS.bytes)
+		sigLength = int(sig.DSASigR.EncodedLength())
+		sigLength += int(sig.DSASigS.EncodedLength())
 	case PubKeyAlgoECDSA:
-		sigLength = 2 + len(sig.ECDSASigR.bytes)
-		sigLength += 2 + len(sig.ECDSASigS.bytes)
+		sigLength = int(sig.ECDSASigR.EncodedLength())
+		sigLength += int(sig.ECDSASigS.EncodedLength())
+	case PubKeyAlgoEdDSA:
+		sigLength = int(sig.EdDSASigR.EncodedLength())
+		sigLength += int(sig.EdDSASigS.EncodedLength())
 	default:
 		panic("impossible")
 	}
@@ -649,11 +711,14 @@ func (sig *Signature) Serialize(w io.Writer) (err error) {
 		return
 	}
 
-	return sig.serializeWithoutHeaders(w)
+	err = sig.serializeBody(w)
+	if err != nil {
+		return err
+	}
+	return
 }
 
-// https://tools.ietf.org/html/rfc4880#section-5.2.3
-func (sig *Signature) serializeWithoutHeaders(w io.Writer) (err error) {
+func (sig *Signature) serializeBody(w io.Writer) (err error) {
 	unhashedSubpacketsLen := subpacketsLength(sig.outSubpackets, false)
 	_, err = w.Write(sig.HashSuffix[:len(sig.HashSuffix)-6])
 	if err != nil {
@@ -676,11 +741,22 @@ func (sig *Signature) serializeWithoutHeaders(w io.Writer) (err error) {
 
 	switch sig.PubKeyAlgo {
 	case PubKeyAlgoRSA, PubKeyAlgoRSASignOnly:
-		err = writeMPIs(w, sig.RSASignature)
+		_, err = w.Write(sig.RSASignature.EncodedBytes())
 	case PubKeyAlgoDSA:
-		err = writeMPIs(w, sig.DSASigR, sig.DSASigS)
+		if _, err = w.Write(sig.DSASigR.EncodedBytes()); err != nil {
+			return
+		}
+		_, err = w.Write(sig.DSASigS.EncodedBytes())
 	case PubKeyAlgoECDSA:
-		err = writeMPIs(w, sig.ECDSASigR, sig.ECDSASigS)
+		if _, err = w.Write(sig.ECDSASigR.EncodedBytes()); err != nil {
+			return
+		}
+		_, err = w.Write(sig.ECDSASigS.EncodedBytes())
+	case PubKeyAlgoEdDSA:
+		if _, err = w.Write(sig.EdDSASigR.EncodedBytes()); err != nil {
+			return
+		}
+		_, err = w.Write(sig.EdDSASigS.EncodedBytes())
 	default:
 		panic("impossible")
 	}
@@ -731,7 +807,19 @@ func (sig *Signature) buildSubpackets() (subpackets []outputSubpacket, err error
 		subpackets = append(subpackets, outputSubpacket{true, keyFlagsSubpacket, false, []byte{flags}})
 	}
 
-	// The following subpackets may only appear in self-signatures
+	// The following subpackets may only appear in self-signatures.
+
+	var features = byte(0x00)
+	if sig.MDC {
+		features |= 0x01
+	}
+	if sig.AEAD {
+		features |= 0x02
+	}
+
+	if features != 0x00 {
+		subpackets = append(subpackets, outputSubpacket{true, featuresSubpacket, false, []byte{features}})
+	}
 
 	if sig.KeyLifetimeSecs != nil && *sig.KeyLifetimeSecs != 0 {
 		keyLifetime := make([]byte, 4)
@@ -755,14 +843,25 @@ func (sig *Signature) buildSubpackets() (subpackets []outputSubpacket, err error
 		subpackets = append(subpackets, outputSubpacket{true, prefCompressionSubpacket, false, sig.PreferredCompression})
 	}
 
-	// https://tools.ietf.org/html/rfc4880#section-5.2.3.26
+	if len(sig.PreferredAEAD) > 0 {
+		subpackets = append(subpackets, outputSubpacket{true, prefAeadAlgosSubpacket, false, sig.PreferredAEAD})
+	}
+
+	// Revocation reason appears only in revocation signatures and is serialized as per section 5.2.3.23.
+	if sig.RevocationReason != nil {
+		subpackets = append(subpackets, outputSubpacket{true, reasonForRevocationSubpacket, true,
+			append([]uint8{*sig.RevocationReason}, []uint8(sig.RevocationReasonText)...)})
+	}
+
+	// EmbeddedSignature appears only in subkeys capable of signing and is serialized as per section 5.2.3.26.
 	if sig.EmbeddedSignature != nil {
 		var buf bytes.Buffer
-		err = sig.EmbeddedSignature.serializeWithoutHeaders(&buf)
+		err = sig.EmbeddedSignature.serializeBody(&buf)
 		if err != nil {
 			return
 		}
-		subpackets = append(subpackets, outputSubpacket{true, embeddedSignatureSubpacket, true, buf.Bytes()})
+		subpackets = append(subpackets, outputSubpacket{true, embeddedSignatureSubpacket, true,
+			buf.Bytes()})
 	}
 
 	return

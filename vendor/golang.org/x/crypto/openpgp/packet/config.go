@@ -8,6 +8,7 @@ import (
 	"crypto"
 	"crypto/rand"
 	"io"
+	"math/big"
 	"time"
 )
 
@@ -46,9 +47,28 @@ type Config struct {
 	// RSABits is the number of bits in new RSA keys made with NewEntity.
 	// If zero, then 2048 bit keys are created.
 	RSABits int
-	// SigLifetimeSecs is the number of seconds after the signature creation
-	// time that the signature expires.  If this is not present or has a value
-	// of zero, it never expires.
+	// The public key algorithm to use - will always create a signing primary
+	// key and encryption subkey.
+	Algorithm PublicKeyAlgorithm
+	// Some known primes that are optionally prepopulated by the caller
+	RSAPrimes []*big.Int
+	// AEADConfig configures the use of the new AEAD Encrypted Data Packet,
+	// defined in the draft of the next version of the OpenPGP specification.
+	// If a non-nil AEADConfig is passed, usage of this packet is enabled. By
+	// default, it is disabled. See the documentation of AEADConfig for more
+	// configuration options related to AEAD.
+	// **Note: using this option may break compatibility with other OpenPGP
+	// implementations, as well as future versions of this library.**
+	AEADConfig *AEADConfig
+	// "The validity period of the key.  This is the number of seconds after
+	// the key creation time that the key expires.  If this is not present
+	// or has a value of zero, the key never expires.  This is found only on
+	// a self-signature.""
+	// https://tools.ietf.org/html/rfc4880#section-5.2.3.6
+	KeyLifetimeSecs uint32
+	// "The validity period of the signature.  This is the number of seconds
+	// after the signature creation time that the signature expires.  If
+	// this is not present or has a value of zero, it never expires."
 	// https://tools.ietf.org/html/rfc4880#section-5.2.3.10
 	SigLifetimeSecs uint32
 }
@@ -81,6 +101,22 @@ func (c *Config) Now() time.Time {
 	return c.Time()
 }
 
+// KeyLifetime returns the validity period of the key.
+func (c *Config) KeyLifetime() uint32 {
+	if c == nil {
+		return 0
+	}
+	return c.KeyLifetimeSecs
+}
+
+// SigLifetime returns the validity period of the signature.
+func (c *Config) SigLifetime() uint32 {
+	if c == nil {
+		return 0
+	}
+	return c.SigLifetimeSecs
+}
+
 func (c *Config) Compression() CompressionAlgo {
 	if c == nil {
 		return CompressionNone
@@ -93,4 +129,25 @@ func (c *Config) PasswordHashIterations() int {
 		return 0
 	}
 	return c.S2KCount
+}
+
+func (c *Config) RSAModulusBits() int {
+	if c == nil || c.RSABits == 0 {
+		return 2048
+	}
+	return c.RSABits
+}
+
+func (c *Config) PublicKeyAlgorithm() PublicKeyAlgorithm {
+	if c == nil || c.Algorithm == 0 {
+		return PubKeyAlgoRSA
+	}
+	return c.Algorithm
+}
+
+func (c *Config) AEAD() *AEADConfig {
+	if c == nil {
+		return nil
+	}
+	return c.AEADConfig
 }

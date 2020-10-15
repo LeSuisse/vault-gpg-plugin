@@ -106,21 +106,36 @@ github.com/securego/gosec
 github.com/securego/gosec/cmd/gosec
 github.com/securego/gosec/output
 github.com/securego/gosec/rules
-# golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 => github.com/trishankatdatadog/crypto v0.0.0-20201003183309-2dc30c1240f0
+# golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 => /Users/trishank.kuppusamy/go/src/github.com/DataDog/crypto
 ## explicit
+golang.org/x/crypto/bitcurves
 golang.org/x/crypto/blake2b
+golang.org/x/crypto/brainpool
 golang.org/x/crypto/cast5
 golang.org/x/crypto/cryptobyte
 golang.org/x/crypto/cryptobyte/asn1
+golang.org/x/crypto/curve25519
+golang.org/x/crypto/eax
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
+golang.org/x/crypto/internal/byteutil
+golang.org/x/crypto/internal/randutil
+golang.org/x/crypto/internal/syscall/unix
+golang.org/x/crypto/ocb
 golang.org/x/crypto/openpgp
+golang.org/x/crypto/openpgp/aes/keywrap
 golang.org/x/crypto/openpgp/armor
+golang.org/x/crypto/openpgp/ecdh
 golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/openpgp/errors
+golang.org/x/crypto/openpgp/internal/algorithm
+golang.org/x/crypto/openpgp/internal/ecc
+golang.org/x/crypto/openpgp/internal/encoding
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
 golang.org/x/crypto/pbkdf2
+golang.org/x/crypto/rand
+golang.org/x/crypto/rsa
 # golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
 golang.org/x/net/context
 golang.org/x/net/http/httpguts
@@ -222,4 +237,4 @@ honnef.co/go/tools/staticcheck/vrp
 honnef.co/go/tools/stylecheck
 honnef.co/go/tools/unused
 honnef.co/go/tools/version
-# golang.org/x/crypto => github.com/trishankatdatadog/crypto v0.0.0-20201003183309-2dc30c1240f0
+# golang.org/x/crypto => /Users/trishank.kuppusamy/go/src/github.com/DataDog/crypto

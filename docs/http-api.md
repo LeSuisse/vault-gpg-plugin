@@ -21,6 +21,7 @@ Unless otherwise specified, when we say "key" here, assume that it is a master k
   * [List Subkeys](#list-subkeys)
   * [Delete Subkey](#delete-subkey)
   * [Sign Data with Subkey](#sign-data-with-subkey)
+  * [Verify Signed Data with Subkey](#verify-signed-data-with-subkey)
 
 ## Master Keys
 
@@ -227,6 +228,8 @@ named master key and the specified hash algorithm.
 
     - `base64`
     - `ascii-armor`
+
+- `expires` `(int: 31536000)` – Specifies the number of seconds from the creation time (now) after which the signature expires. If the number is zero, then the signature never expires.
 
 - `input` `(string: <required>)` – Specifies the **base64 encoded** input data.
 
@@ -549,59 +552,8 @@ $ curl \
 
 ### Sign Data with Subkey
 
-This endpoint returns a signature of the given input data using the given subkey associated with the given master key, and the specified hash algorithm.
+Use [Sign Data](#sign-data) to sign data with the _first_ available signing subkey.
 
-| Method   | Path                                            | Produces               |
-| :------- | :---------------------------------------------- | :--------------------- |
-| `POST`   | `/gpg/sign/:name/subkeys/:key_id/(/:algorithm)` | `200 application/json` |
+### Verify Signed Data with Subkey
 
-#### Parameters
-
-- `name` `(string: <required>)` – Specifies the name of the master key with which the subkey is associated. This is specified as part of the URL.
-
-- `key_id` `(string: <required>)` – Specifies the Key ID of the subkey. This is specified as part of the URL.
-
-- `algorithm` `(string: "sha2-256")` – Specifies the hash algorithm to use. This can also be specified as part of the URL.
-  Valid algorithms are:
-
-    - `sha2-224`
-    - `sha2-256`
-    - `sha2-384`
-    - `sha2-512`
-
-- `format` `(string: "base64")` – Specifies the encoding format for the returned signature. Valid encoding format are:
-
-    - `base64`
-    - `ascii-armor`
-
-- `input` `(string: <required>)` – Specifies the **base64 encoded** input data.
-
-- `expires` `(int: 31536000)` – Specifies the number of seconds from the creation time (now) after which the signature expires. If the number is zero, then the signature never expires.
-
-#### Sample payload
-
-```json
-{
-  "input": "QWxwYWNhCg=="
-}
-```
-
-#### Sample request
-
-```
-$ curl \
-    --header "X-Vault-Token: ..." \
-    --request POST \
-    --data @payload.json \
-    https://vault.example.com/v1/gpg/keys/my-key/subkeys/6D0A9151F25B6B85
-```
-
-#### Sample response
-
-```json
-{
-  "data": {
-    "signature": "wsBcBAABCgAQBQJZme+7CRBr/Ej4JtFtLAAA8QcIACLtMWlH5860njpQsJZDIzH3T4mz2397lsd9/hsFDAQXEimuLKWmNdJsTEWXKGx1fvW+r6LEPs8HOLdzOMz2tq6M0WvgzHeWOFdEYmCapUlS68m0GnSFHIAFkq2fMVFHdTTmiLNuZwd+meEPL48hUO8QoGZLhS9IO+xOIisJWP+YIfiZBhmqhz0nVX3CnIzDZWAeJCE9TFGPHjFVNHXKN/IA+pdY4ntU1VOxmKCDqtu6qOrFR3ZghJBrDpDqiMHYmnJZ2AGPDVPKoAorvrLkR7eXNX71yRcutqohqS+xt6nGak2OF7UKwgj5bjk1y44lROFi8aVW4LEX7Jmt+2qwWBg="
-  }
-}
-```
+Use [Verify Signed Data](#verify-signed-data) to verify data signed with a subkey.

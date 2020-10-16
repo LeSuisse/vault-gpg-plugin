@@ -106,7 +106,7 @@ github.com/securego/gosec
 github.com/securego/gosec/cmd/gosec
 github.com/securego/gosec/output
 github.com/securego/gosec/rules
-# golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 => /Users/trishank.kuppusamy/go/src/github.com/DataDog/crypto
+# golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 => github.com/DataDog/crypto v0.0.0-20201015225611-f2dc01c94015
 ## explicit
 golang.org/x/crypto/bitcurves
 golang.org/x/crypto/blake2b
@@ -237,4 +237,4 @@ honnef.co/go/tools/staticcheck/vrp
 honnef.co/go/tools/stylecheck
 honnef.co/go/tools/unused
 honnef.co/go/tools/version
-# golang.org/x/crypto => /Users/trishank.kuppusamy/go/src/github.com/DataDog/crypto
+# golang.org/x/crypto => github.com/DataDog/crypto v0.0.0-20201015225611-f2dc01c94015

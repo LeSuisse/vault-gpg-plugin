@@ -56,7 +56,7 @@ func TestBackend_Signing(t *testing.T) {
 		"real_name":  "Vault",
 		"email":      "vault@example.com",
 		"comment":    "Comment",
-		"key_bits":   4096,
+		"key_bits":   2048,
 		"exportable": true,
 	}
 	base64InputData := "bXkgc2VjcmV0IGRhdGEK"
@@ -65,7 +65,9 @@ func TestBackend_Signing(t *testing.T) {
 	testAccStepCreateKey(t, b, storage, masterName, keyData, false)
 
 	t.Run("signing with master key", func(t *testing.T) {
-		signature := testAccStepSign(t, b, storage, masterName, base64InputData)
+		signature := testAccStepSign(t, b, storage, masterName, map[string]interface{}{
+			"input": base64InputData,
+		})
 		testAccStepVerify(t, b, storage, masterName, map[string]interface{}{
 			"input":     base64InputData,
 			"signature": signature,
@@ -80,7 +82,7 @@ func TestBackend_Signing(t *testing.T) {
 		subkeyRespData := testAccStepCreateSubkey(t, b, storage, masterName, map[string]interface{}{})
 		subkeyID := subkeyRespData["key_id"].(string)
 		testAccStepReadSubkey(t, b, storage, masterName, subkeyID)
-		signature := testAccStepSignWithSubkey(t, b, storage, masterName, subkeyID, map[string]interface{}{
+		signature := testAccStepSign(t, b, storage, masterName, map[string]interface{}{
 			"input": base64InputData,
 		})
 		testAccStepVerify(t, b, storage, masterName, map[string]interface{}{
@@ -91,6 +93,8 @@ func TestBackend_Signing(t *testing.T) {
 			"input":     otherBase64InputData,
 			"signature": signature,
 		}, false)
+		// NOTE: Critical to delete this subkey, otherwise we might end up always finding this signing subkey first for any signing operation!
+		testAccStepDeleteSubkey(t, b, storage, masterName, subkeyID)
 	})
 
 	t.Run("verification after key expiration", func(t *testing.T) {
@@ -100,14 +104,16 @@ func TestBackend_Signing(t *testing.T) {
 		})
 		subkeyID := subkeyRespData["key_id"].(string)
 		testAccStepReadSubkey(t, b, storage, masterName, subkeyID)
-		signature := testAccStepSignWithSubkey(t, b, storage, masterName, subkeyID, map[string]interface{}{
+		signature := testAccStepSign(t, b, storage, masterName, map[string]interface{}{
 			"input":   base64InputData,
 			"expires": 0, // signature does not expire
 		})
-
+		testAccStepVerify(t, b, storage, masterName, map[string]interface{}{
+			"input":     base64InputData,
+			"signature": signature,
+		}, true)
 		// Sleep for long enough that the subkey *should have* expired
 		time.Sleep(time.Duration(keyExpiresAfterSeconds) * time.Second)
-
 		testAccStepVerify(t, b, storage, masterName, map[string]interface{}{
 			"input":     base64InputData,
 			"signature": signature,
@@ -121,14 +127,16 @@ func TestBackend_Signing(t *testing.T) {
 		subkeyID := subkeyRespData["key_id"].(string)
 		testAccStepReadSubkey(t, b, storage, masterName, subkeyID)
 		sigExpiresAfterSeconds := 3
-		signature := testAccStepSignWithSubkey(t, b, storage, masterName, subkeyID, map[string]interface{}{
+		signature := testAccStepSign(t, b, storage, masterName, map[string]interface{}{
 			"input":   base64InputData,
 			"expires": sigExpiresAfterSeconds,
 		})
-
+		testAccStepVerify(t, b, storage, masterName, map[string]interface{}{
+			"input":     base64InputData,
+			"signature": signature,
+		}, true)
 		// Sleep for long enough that the subkey and the signature *should have* expired
 		time.Sleep(time.Duration(sigExpiresAfterSeconds) * time.Second)
-
 		testAccStepVerify(t, b, storage, masterName, map[string]interface{}{
 			"input":     base64InputData,
 			"signature": signature,
@@ -316,10 +324,10 @@ func testAccStepCreateSubkey(t *testing.T, b logical.Backend, s logical.Storage,
 	return resp.Data
 }
 
-func testAccStepReadSubkey(t *testing.T, b logical.Backend, s logical.Storage, masterName string, subkeyName string) {
+func testAccStepReadSubkey(t *testing.T, b logical.Backend, s logical.Storage, masterName string, subkeyID string) {
 	resp, err := b.HandleRequest(context.Background(), &logical.Request{
 		Operation: logical.ReadOperation,
-		Path:      "keys/" + masterName + "/subkeys/" + subkeyName,
+		Path:      "keys/" + masterName + "/subkeys/" + subkeyID,
 		Storage:   s,
 	})
 	if err != nil {
@@ -338,25 +346,25 @@ func testAccStepReadSubkey(t *testing.T, b logical.Backend, s logical.Storage, m
 	}
 }
 
-func testAccStepSign(t *testing.T, b logical.Backend, s logical.Storage, masterName string, base64Input string) string {
-	resp, err := b.HandleRequest(context.Background(), &logical.Request{
-		Operation: logical.UpdateOperation,
-		Path:      "sign/" + masterName,
-		Data: map[string]interface{}{
-			"input": base64Input,
-		},
-		Storage: s,
+func testAccStepDeleteSubkey(t *testing.T, b logical.Backend, storage logical.Storage, masterName string, subkeyID string) {
+	response, err := b.HandleRequest(context.Background(), &logical.Request{
+		Operation: logical.DeleteOperation,
+		Path:      "keys/" + masterName + "/subkeys/" + subkeyID,
+		Storage:   storage,
 	})
+
 	if err != nil {
 		t.Error(err)
 	}
-	return resp.Data["signature"].(string)
+	if response.IsError() {
+		t.Error(response.Error())
+	}
 }
 
-func testAccStepSignWithSubkey(t *testing.T, b logical.Backend, s logical.Storage, masterName string, subkeyName string, signData map[string]interface{}) string {
+func testAccStepSign(t *testing.T, b logical.Backend, s logical.Storage, masterName string, signData map[string]interface{}) string {
 	resp, err := b.HandleRequest(context.Background(), &logical.Request{
 		Operation: logical.UpdateOperation,
-		Path:      "sign/" + masterName + "/subkeys/" + subkeyName,
+		Path:      "sign/" + masterName,
 		Data:      signData,
 		Storage:   s,
 	})

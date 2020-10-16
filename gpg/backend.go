@@ -25,7 +25,6 @@ func Backend() *backend {
 		Help: backendHelp,
 		Paths: []*framework.Path{
 			// List more specific subkey routes first.
-			pathSubkeysSign(&b),
 			pathSubkeysRD(&b),
 			pathSubkeysCL(&b),
 			pathKeys(&b),

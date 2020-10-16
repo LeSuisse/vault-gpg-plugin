@@ -93,17 +93,14 @@ func (b *backend) pathSubkeyCreate(ctx context.Context, req *logical.Request, da
 	expires := uint32(data.Get("expires").(int))
 
 	config := packet.Config{}
-
 	if keyBits < 2048 {
 		return logical.ErrorResponse("asymmetric subkeys < 2048 bits are unsafe"), nil
-	} else {
-		config.RSABits = keyBits
 	}
+	config.RSABits = keyBits
 	if keyType != "rsa" {
 		return logical.ErrorResponse("non-RSA subkeys are not yet supported"), nil
-	} else {
-		config.Algorithm = packet.PubKeyAlgoRSA
 	}
+	config.Algorithm = packet.PubKeyAlgoRSA
 	if !reflect.DeepEqual(capabilities, []string{"sign"}) {
 		return logical.ErrorResponse("capabilities other than signing are not yet supported: " + fmt.Sprintf("%v", capabilities)), nil
 	}
@@ -258,13 +255,17 @@ func (b *backend) pathSubkeyRead(ctx context.Context, req *logical.Request, data
 			capabilities = append(capabilities, "encrypt")
 		}
 	}
+	expires := uint32(0)
+	if subkey.SelfSignature.KeyLifetimeSecs != nil {
+		expires = *subkey.SelfSignature.KeyLifetimeSecs
+	}
 
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"key_type":     keyType,
 			"capabilities": capabilities,
 			"key_bits":     keyBits,
-			"expires":      subkey.SelfSignature.KeyLifetimeSecs,
+			"expires":      expires,
 		},
 	}, nil
 }

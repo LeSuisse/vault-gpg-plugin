@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: Tests (${{ matrix.os }})
     steps:
-      - uses: actions/checkout@v2.3.3
+      - uses: actions/checkout@v2.3.4
       - uses: actions/setup-go@v2.1.3
         with:
           go-version: '^1.15.0'
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-20.04
     name: Run static analysis and linting
     steps:
-      - uses: actions/checkout@v2.3.3
+      - uses: actions/checkout@v2.3.4
       - uses: actions/setup-go@v2.1.3
         with:
           go-version: '^1.15.0'
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-20.04
     name: Build across all supported architectures
     steps:
-      - uses: actions/checkout@v2.3.3
+      - uses: actions/checkout@v2.3.4
       - uses: actions/setup-go@v2.1.3
         with:
           go-version: '^1.15.0'

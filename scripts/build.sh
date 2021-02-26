@@ -7,7 +7,7 @@ while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done
 cd -P "$( dirname "$SOURCE" )/.."
 
 SUPPORTED_ARCHES=( "linux/386" "linux/amd64" "linux/arm" "linux/arm64"
-                   "darwin/amd64"
+                   "darwin/amd64" "darwin/arm64"
                    "windows/386" "windows/amd64"
                    "freebsd/386" "freebsd/amd64" "freebsd/arm"
                    "openbsd/386" "openbsd/amd64" "openbsd/arm"

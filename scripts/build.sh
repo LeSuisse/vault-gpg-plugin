@@ -2,6 +2,8 @@
 
 set -e
 
+export TZ=UTC
+
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done
 cd -P "$( dirname "$SOURCE" )/.."
@@ -30,12 +32,15 @@ do
         -o "pkg/${os}_${arch}/vault-gpg-plugin${binary_extension}"
 done
 
+COMMIT_DATE="$(git log -1 --pretty=%cI)"
+
 while IFS= read -r -d '' platform
 do
     osarch=$(basename "$platform")
 
     pushd "$platform" >/dev/null 2>&1
     sha256sum -- * > "$osarch".sha256sum
+    find . -exec touch --no-dereference --date="$COMMIT_DATE" {} \;
     zip ../"$osarch".zip ./*
     popd >/dev/null 2>&1
 done <   <(find ./pkg -mindepth 1 -maxdepth 1 -type d -print0)

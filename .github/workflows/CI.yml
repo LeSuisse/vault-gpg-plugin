@@ -47,5 +47,8 @@ jobs:
       - uses: cachix/install-nix-action@v12
       - name: Build
         run: ./scripts/build.sh
-      - name: Display checksum
-        run: find ./pkg/ -name '*.sha256sum' -exec cat {} \;
+      - uses: actions/upload-artifact@v2.2.2
+        with:
+          name: pre-built-binaries
+          path: pkg/*.zip
+          retention-days: 2

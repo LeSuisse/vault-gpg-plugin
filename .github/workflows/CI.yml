@@ -47,7 +47,7 @@ jobs:
       - uses: cachix/install-nix-action@v13
       - name: Build
         run: ./scripts/build.sh
-      - uses: actions/upload-artifact@v2.2.2
+      - uses: actions/upload-artifact@v2.2.3
         with:
           name: pre-built-binaries
           path: pkg/*.zip

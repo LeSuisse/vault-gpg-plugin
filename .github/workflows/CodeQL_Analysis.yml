@@ -1,6 +1,10 @@
 name: "CodeQL"
 
-#permissions: read-all
+permissions:
+  - contents: read
+  - deployments: none
+  - actions: none
+  - packages: none
 
 on:
   push:

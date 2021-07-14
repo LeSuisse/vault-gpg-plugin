@@ -42,6 +42,6 @@ do
     pushd "$platform" >/dev/null 2>&1
     sha256sum -- * > "$osarch".sha256sum
     find . -exec touch --no-dereference --date="$COMMIT_DATE" {} \;
-    zip -X ../"$osarch".zip ./*
+    zip --latest-time -X ../"$osarch".zip ./*
     popd >/dev/null 2>&1
 done <   <(find ./pkg -mindepth 1 -maxdepth 1 -type d -print0)

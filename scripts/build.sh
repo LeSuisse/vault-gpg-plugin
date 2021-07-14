@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell --pure ./build-env.nix -i bash
+#! nix-shell --pure ../shell.nix -i bash
 
 set -e
 

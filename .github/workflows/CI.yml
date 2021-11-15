@@ -46,7 +46,7 @@ jobs:
     name: Build across all supported architectures
     steps:
       - uses: actions/checkout@v2.4.0
-      - uses: cachix/install-nix-action@v14
+      - uses: cachix/install-nix-action@v15
       - name: Build
         run: ./scripts/build.sh
       - uses: actions/upload-artifact@v2.2.4

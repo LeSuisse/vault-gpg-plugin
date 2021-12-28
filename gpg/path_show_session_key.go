@@ -9,12 +9,11 @@ import (
 	"io"
 	"strings"
 
-	"golang.org/x/crypto/openpgp/packet"
-
+	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/armor"
+	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/armor"
 )
 
 func pathShowSessionKey(b *backend) *framework.Path {

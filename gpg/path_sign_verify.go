@@ -6,10 +6,10 @@ import (
 	"crypto"
 	"encoding/base64"
 	"fmt"
+	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/packet"
 	"strings"
 )
 
@@ -196,9 +196,9 @@ func (b *backend) pathVerifyWrite(ctx context.Context, req *logical.Request, dat
 	switch format {
 	case "base64":
 		decoder := base64.NewDecoder(base64.StdEncoding, signature)
-		_, err = openpgp.CheckDetachedSignature(keyring, message, decoder)
+		_, err = openpgp.CheckDetachedSignature(keyring, message, decoder, nil)
 	case "ascii-armor":
-		_, err = openpgp.CheckArmoredDetachedSignature(keyring, message, signature)
+		_, err = openpgp.CheckArmoredDetachedSignature(keyring, message, signature, nil)
 	}
 
 	resp := &logical.Response{

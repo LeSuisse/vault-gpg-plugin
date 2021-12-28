@@ -5,10 +5,10 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/armor"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/armor"
 	"io"
 	"strings"
 )
@@ -105,7 +105,7 @@ func (b *backend) pathDecryptWrite(ctx context.Context, req *logical.Request, da
 	}
 
 	if signerKey != "" && (!md.IsSigned || md.SignedBy == nil || md.SignatureError != nil) {
-		return logical.ErrorResponse("Signature is invalid or not present"), nil
+		return logical.ErrorResponse("Signature is invalid or not present: %s", md.SignatureError), nil
 	}
 
 	return &logical.Response{

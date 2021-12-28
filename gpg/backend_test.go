@@ -3,8 +3,8 @@ package gpg
 import (
 	"context"
 	"encoding/hex"
+	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/hashicorp/vault/sdk/logical"
-	"golang.org/x/crypto/openpgp"
 	"reflect"
 	"strings"
 	"testing"

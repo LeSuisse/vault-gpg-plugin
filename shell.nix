@@ -11,5 +11,7 @@ pkgs.mkShell {
     pkgs.gitMinimal
     pkgs.zip
     pkgs.go_1_17
+    pkgs.gnupg
+    pkgs.rekor-cli
   ];
 }

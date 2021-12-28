@@ -16,21 +16,21 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: Tests (${{ matrix.os }})
     steps:
-      - uses: actions/checkout@v2.4.0
-      - uses: actions/setup-go@v2.1.5
+      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+      - uses: actions/setup-go@424fc82d43fa5a37540bae62709ddcc23d9520d4
         with:
           go-version: '^1.16.0'
       - name: Tests
         run: "go test -race -coverprofile='coverage.txt' -covermode=atomic -v ./gpg/"
-      - uses: codecov/codecov-action@v2.1.0
+      - uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
   static_analysis:
     runs-on: ubuntu-20.04
     name: Run static analysis and linting
     steps:
-      - uses: actions/checkout@v2.4.0
-      - uses: actions/setup-go@v2.1.5
+      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+      - uses: actions/setup-go@424fc82d43fa5a37540bae62709ddcc23d9520d4
         with:
           go-version: '^1.16.0'
       - name: Go fmt
@@ -45,11 +45,11 @@ jobs:
     runs-on: ubuntu-20.04
     name: Build across all supported architectures
     steps:
-      - uses: actions/checkout@v2.4.0
-      - uses: cachix/install-nix-action@v16
+      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+      - uses: cachix/install-nix-action@d56f3ce9be45c562799280e8a561fbbe8f36de44
       - name: Build
         run: ./scripts/build.sh
-      - uses: actions/upload-artifact@v2.3.1
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2
         with:
           name: pre-built-binaries
           path: pkg/*.zip

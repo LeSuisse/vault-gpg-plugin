@@ -8,6 +8,7 @@ Since it is possible to mount secret backends at any location, please update you
 * [List Keys](#list-keys)
 * [Delete Key](#delete-key)
 * [Export Key](#export-key)
+* [Update Key Configuration](#update-key-configuration)
 * [Decrypt Data](#decrypt-data)
 * [Sign Data](#sign-data)
 * [Verify Signed Data](#verify-signed-data)
@@ -40,7 +41,7 @@ it must be deleted first.
 
 - `exportable` `(bool: false)` – Specifies if the raw key is exportable.
 
-- `transparency_log_address` `(string: "")` – Specifies the [Rekor transparency log](https://github.com/sigstore/rekor) address to publish the signature.
+- `transparency_log_address` `(string: "")` – Specifies the [Rekor transparency log](https://github.com/sigstore/rekor) address used to publish the signatures.
 
 ### Sample Payload
 
@@ -192,6 +193,40 @@ $ curl \
     "key": "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\nxcLYBFmZ7JwBCACxsatS8MKxvKpMspkl7ck4vvgZvijBu0sx7Z0+0QDAj8ej5gfK\n...\nYsnjj4QHSRbwJVs/WSIiAj39EyD+bQZDDDFqg62pUA==\n=j7B6\n-----END PGP PRIVATE KEY BLOCK-----"
   }
 }
+```
+
+## Update Key Configuration
+
+This endpoint allows tuning configuration values for a given key.
+(These values are returned during a read operation on the named key.)
+
+
+| Method | Path                     | Produces           |
+|:-------|:-------------------------|:-------------------|
+| `POST` | `/gpg/keys/:name/config` | `204 (empty body)` |
+
+### Parameters
+
+- `name` `(string: <required>)` – Specifies the name of the key configure.
+
+- `transparency_log_address` `(string: "")` – Specifies the [Rekor transparency log](https://github.com/sigstore/rekor) address used to publish the signatures.
+
+### Sample payload
+
+```json
+{
+  "transparency_log_address": "https://rekor.example.com"
+}
+```
+
+### Sample request
+
+```
+$ curl \
+    --header "X-Vault-Token: ..." \
+    --request POST \
+    --data @payload.json \
+    https://vault.example.com/v1/gpg/keys/my-key/config
 ```
 
 ## Sign Data

@@ -237,18 +237,19 @@ func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data 
 		}
 	}
 
-	entry, err := logical.StorageEntryJSON("key/"+name, &keyEntry{
+	return nil, b.storeKeyEntry(ctx, req.Storage, name, &keyEntry{
 		SerializedKey:          buf.Bytes(),
 		Exportable:             exportable,
 		TransparencyLogAddress: transparencyLogAddress,
 	})
+}
+
+func (b *backend) storeKeyEntry(ctx context.Context, storage logical.Storage, name string, keyEntry *keyEntry) error {
+	entry, err := logical.StorageEntryJSON("key/"+name, keyEntry)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if err := req.Storage.Put(ctx, entry); err != nil {
-		return nil, err
-	}
-	return nil, nil
+	return storage.Put(ctx, entry)
 }
 
 func (b *backend) pathKeyDelete(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {

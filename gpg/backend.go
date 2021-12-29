@@ -30,6 +30,7 @@ func Backend() *backend {
 			pathVerify(&b),
 			pathDecrypt(&b),
 			pathShowSessionKey(&b),
+			pathConfig(&b),
 		},
 		PathsSpecial: &logical.Paths{
 			SealWrapStorage: []string{

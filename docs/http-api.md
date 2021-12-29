@@ -40,6 +40,8 @@ it must be deleted first.
 
 - `exportable` `(bool: false)` – Specifies if the raw key is exportable.
 
+- `transparency_log_address` `(string: "")` – Specifies the [Rekor transparency log](https://github.com/sigstore/rekor) address to publish the signature.
+
 ### Sample Payload
 
 ```json
@@ -197,6 +199,9 @@ $ curl \
 This endpoint returns the signature of the given data using the
 named GPG key and the specified hash algorithm.
 
+If the named GPG key has a defined Rekor transparency log address,
+the public key and signature will be published to it. 
+
 | Method   | Path                           | Produces               |
 | :------- | :----------------------------- | :--------------------- |
 | `POST`   | `/gpg/sign/:name(/:algorithm)` | `200 application/json` |
@@ -240,11 +245,25 @@ $ curl \
 
 ### Sample response
 
-
+With a Rekor transparency log address:
 ```json
 {
   "data": {
-    "signature": "wsBcBAABCgAQBQJZme+7CRBr/Ej4JtFtLAAA8QcIACLtMWlH5860njpQsJZDIzH3T4mz2397lsd9/hsFDAQXEimuLKWmNdJsTEWXKGx1fvW+r6LEPs8HOLdzOMz2tq6M0WvgzHeWOFdEYmCapUlS68m0GnSFHIAFkq2fMVFHdTTmiLNuZwd+meEPL48hUO8QoGZLhS9IO+xOIisJWP+YIfiZBhmqhz0nVX3CnIzDZWAeJCE9TFGPHjFVNHXKN/IA+pdY4ntU1VOxmKCDqtu6qOrFR3ZghJBrDpDqiMHYmnJZ2AGPDVPKoAorvrLkR7eXNX71yRcutqohqS+xt6nGak2OF7UKwgj5bjk1y44lROFi8aVW4LEX7Jmt+2qwWBg="
+    "signature": "wsBcBAABCgAQBQJZme+7CRBr/Ej4JtFtLAAA8QcIACLtMWlH5860njpQsJZDIzH3T4mz2397lsd9/hsFDAQXEimuLKWmNdJsTEWXKGx1fvW+r6LEPs8HOLdzOMz2tq6M0WvgzHeWOFdEYmCapUlS68m0GnSFHIAFkq2fMVFHdTTmiLNuZwd+meEPL48hUO8QoGZLhS9IO+xOIisJWP+YIfiZBhmqhz0nVX3CnIzDZWAeJCE9TFGPHjFVNHXKN/IA+pdY4ntU1VOxmKCDqtu6qOrFR3ZghJBrDpDqiMHYmnJZ2AGPDVPKoAorvrLkR7eXNX71yRcutqohqS+xt6nGak2OF7UKwgj5bjk1y44lROFi8aVW4LEX7Jmt+2qwWBg=",
+    "log_entry": {
+      "address": "https://rekor.example.com/api/v1/log/entries/d7b75df081cb91b28939cd54b51e767f18164096c86e8d6b0dc335cfeb92b638",
+      "uuid": "d7b75df081cb91b28939cd54b51e767f18164096c86e8d6b0dc335cfeb92b638"
+    }
+  }
+}
+```
+
+Without a Rekor transparency log address:
+```json
+{
+  "data": {
+    "signature": "wsBcBAABCgAQBQJZme+7CRBr/Ej4JtFtLAAA8QcIACLtMWlH5860njpQsJZDIzH3T4mz2397lsd9/hsFDAQXEimuLKWmNdJsTEWXKGx1fvW+r6LEPs8HOLdzOMz2tq6M0WvgzHeWOFdEYmCapUlS68m0GnSFHIAFkq2fMVFHdTTmiLNuZwd+meEPL48hUO8QoGZLhS9IO+xOIisJWP+YIfiZBhmqhz0nVX3CnIzDZWAeJCE9TFGPHjFVNHXKN/IA+pdY4ntU1VOxmKCDqtu6qOrFR3ZghJBrDpDqiMHYmnJZ2AGPDVPKoAorvrLkR7eXNX71yRcutqohqS+xt6nGak2OF7UKwgj5bjk1y44lROFi8aVW4LEX7Jmt+2qwWBg=",
+    "log_entry": null
   }
 }
 ```

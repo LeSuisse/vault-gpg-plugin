@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/armor"
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
@@ -136,16 +137,46 @@ func (b *backend) pathSignWrite(ctx context.Context, req *logical.Request, data 
 	}
 
 	message := bytes.NewReader(input)
-	var signature bytes.Buffer
-	switch format {
-	case "ascii-armor":
-		err = openpgp.ArmoredDetachSign(&signature, entity, message, &config)
+
+	var armoredSignatureBuffer bytes.Buffer
+	err = openpgp.ArmoredDetachSign(&armoredSignatureBuffer, entity, message, &config)
+	if err != nil {
+		return nil, err
+	}
+
+	var outputLogEntry map[string]string = nil
+	if entry.TransparencyLogAddress != "" {
+		publicKey, err := extractPublicKey(entity)
 		if err != nil {
 			return nil, err
 		}
+		tlogEntry, err := b.uploadToTransparencyLog(ctx, entry.TransparencyLogAddress, input, armoredSignatureBuffer.Bytes(), publicKey)
+		if err != nil {
+			return logical.ErrorResponse("cannot publish the signature to the transparency log"), err
+		}
+		outputLogEntry = map[string]string{
+			"uuid":    tlogEntry.ETag,
+			"address": fmt.Sprintf("%v%v", entry.TransparencyLogAddress, tlogEntry.Location),
+		}
+	}
+
+	var outputSignature bytes.Buffer
+	switch format {
+	case "ascii-armor":
+		outputSignature = armoredSignatureBuffer
 	case "base64":
-		encoder := base64.NewEncoder(base64.StdEncoding, &signature)
-		err = openpgp.DetachSign(encoder, entity, message, &config)
+		block, err := armor.Decode(bytes.NewReader(armoredSignatureBuffer.Bytes()))
+		if err != nil {
+			return nil, err
+		}
+
+		encoder := base64.NewEncoder(base64.StdEncoding, &outputSignature)
+		bufBody := &bytes.Buffer{}
+		_, err = bufBody.ReadFrom(block.Body)
+		if err != nil {
+			return nil, err
+		}
+		_, err = encoder.Write(bufBody.Bytes())
 		if err != nil {
 			return nil, err
 		}
@@ -157,7 +188,8 @@ func (b *backend) pathSignWrite(ctx context.Context, req *logical.Request, data 
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"signature": signature.String(),
+			"signature": outputSignature.String(),
+			"log_entry": outputLogEntry,
 		},
 	}, nil
 }

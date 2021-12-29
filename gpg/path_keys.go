@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
-	"github.com/ProtonMail/go-crypto/openpgp/armor"
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
@@ -61,6 +60,10 @@ func pathKeys(b *backend) *framework.Path {
 			"exportable": {
 				Type:        framework.TypeBool,
 				Description: "Enables the key to be exportable.",
+			},
+			"transparency_log_address": {
+				Type:        framework.TypeString,
+				Description: "Address of a Rekor transparency log to publish the signatures.",
 			},
 			"generate": {
 				Type:        framework.TypeBool,
@@ -165,21 +168,17 @@ func (b *backend) pathKeyRead(ctx context.Context, req *logical.Request, data *f
 		return nil, err
 	}
 
-	var buf bytes.Buffer
-	w, err := armor.Encode(&buf, openpgp.PublicKeyType, nil)
+	buf, err := extractPublicKey(entity)
 	if err != nil {
-		return nil, err
-	}
-	err = entity.Serialize(w)
-	if err != nil || w.Close() != nil {
 		return nil, err
 	}
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"fingerprint": hex.EncodeToString(entity.PrimaryKey.Fingerprint[:]),
-			"public_key":  buf.String(),
-			"exportable":  entry.Exportable,
+			"fingerprint":              hex.EncodeToString(entity.PrimaryKey.Fingerprint[:]),
+			"public_key":               string(buf),
+			"exportable":               entry.Exportable,
+			"transparency_log_address": entry.TransparencyLogAddress,
 		},
 	}, nil
 }
@@ -191,6 +190,7 @@ func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data 
 	comment := data.Get("comment").(string)
 	keyBits := data.Get("key_bits").(int)
 	exportable := data.Get("exportable").(bool)
+	transparencyLogAddress := data.Get("transparency_log_address").(string)
 	generate := data.Get("generate").(bool)
 	key := data.Get("key").(string)
 
@@ -238,8 +238,9 @@ func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data 
 	}
 
 	entry, err := logical.StorageEntryJSON("key/"+name, &keyEntry{
-		SerializedKey: buf.Bytes(),
-		Exportable:    exportable,
+		SerializedKey:          buf.Bytes(),
+		Exportable:             exportable,
+		TransparencyLogAddress: transparencyLogAddress,
 	})
 	if err != nil {
 		return nil, err
@@ -274,8 +275,9 @@ func (b *backend) pathKeyList(
 }
 
 type keyEntry struct {
-	SerializedKey []byte
-	Exportable    bool
+	SerializedKey          []byte
+	Exportable             bool
+	TransparencyLogAddress string
 }
 
 const pathPolicyHelpSyn = "Managed named GPG keys"

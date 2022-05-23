@@ -49,7 +49,7 @@ jobs:
       - uses: cachix/install-nix-action@d64e0553100205688c0fb2fa16edb0fc8663c590
       - name: Build
         run: ./scripts/build.sh
-      - uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
+      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: pre-built-binaries
           path: pkg/*.zip

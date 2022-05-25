@@ -1,6 +1,6 @@
 module github.com/LeSuisse/vault-gpg-plugin
 
-go 1.17
+go 1.18
 
 require (
 	github.com/ProtonMail/go-crypto v0.0.0-20211221144345-a4f6767435ab

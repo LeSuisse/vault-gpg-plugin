@@ -1,7 +1,7 @@
 { pkgs ? import (
   fetchTarball {
-    url = "https://github.com/NixOS/nixpkgs/archive/5c37ad87222cfc1ec36d6cd1364514a9efc2f7f2.tar.gz";
-    sha256 = "1r74afnalgcbpv7b9sbdfbnx1kfj0kp1yfa60bbbv27n36vqdhbb";
+    url = "https://github.com/NixOS/nixpkgs/archive/41cc1d5d9584103be4108c1815c350e07c807036.tar.gz";
+    sha256 = "sha256:1zwbkijhgb8a5wzsm1dya1a4y79bz6di5h49gcmw6klai84xxisv";
   }
 ) {} }:
 
@@ -10,7 +10,7 @@ pkgs.mkShell {
     pkgs.findutils
     pkgs.gitMinimal
     pkgs.zip
-    pkgs.go_1_17
+    pkgs.go_1_18
     pkgs.gnupg
     pkgs.rekor-cli
   ];

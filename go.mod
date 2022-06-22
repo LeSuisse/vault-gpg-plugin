@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/vault/api v1.7.2
 	github.com/hashicorp/vault/sdk v0.5.2
 	github.com/securego/gosec v0.0.0-20200401082031-e946c8c39989
-	github.com/sigstore/rekor v0.8.1
+	github.com/sigstore/rekor v0.8.2
 	honnef.co/go/tools v0.3.2
 )
 
@@ -87,7 +87,7 @@ require (
 	github.com/sigstore/sigstore v1.2.1-0.20220526001230-8dc4fa90a468 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
-	github.com/spf13/cobra v1.4.0 // indirect
+	github.com/spf13/cobra v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.12.0 // indirect

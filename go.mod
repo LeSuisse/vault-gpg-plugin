@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/ProtonMail/go-crypto v0.0.0-20211221144345-a4f6767435ab
-	github.com/hashicorp/vault/api v1.8.0
+	github.com/hashicorp/vault/api v1.8.1
 	github.com/hashicorp/vault/sdk v0.6.0
 	github.com/securego/gosec v0.0.0-20200401082031-e946c8c39989
 	github.com/sigstore/rekor v0.11.0

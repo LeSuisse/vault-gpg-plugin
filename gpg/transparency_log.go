@@ -35,7 +35,7 @@ func (b backend) uploadToTransparencyLog(ctx context.Context, rekorServerURL str
 	props := types.ArtifactProperties{
 		PKIFormat:      "pgp",
 		ArtifactBytes:  artifactBytes,
-		PublicKeyBytes: publicKeyBytes,
+		PublicKeyBytes: [][]byte{publicKeyBytes},
 		SignatureBytes: sigBytes,
 	}
 

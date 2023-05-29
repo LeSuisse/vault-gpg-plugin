@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/vault/api v1.9.1
 	github.com/hashicorp/vault/sdk v0.9.0
 	github.com/securego/gosec v0.0.0-20200401082031-e946c8c39989
-	github.com/sigstore/rekor v1.2.0
+	github.com/sigstore/rekor v1.2.1
 	honnef.co/go/tools v0.4.3
 )
 

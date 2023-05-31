@@ -3,7 +3,7 @@ module github.com/LeSuisse/vault-gpg-plugin
 go 1.18
 
 require (
-	github.com/ProtonMail/go-crypto v0.0.0-20211221144345-a4f6767435ab
+	github.com/ProtonMail/go-crypto v0.0.0-20230530085236-d36544451cd9
 	github.com/hashicorp/vault/api v1.9.2
 	github.com/hashicorp/vault/sdk v0.9.1
 	github.com/securego/gosec v0.0.0-20200401082031-e946c8c39989
@@ -18,6 +18,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
+	github.com/cloudflare/circl v1.1.0 // indirect
 	github.com/cyberphone/json-canonicalization v0.0.0-20220623050100-57a0ce2678a7 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect

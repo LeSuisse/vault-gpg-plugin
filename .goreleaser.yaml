@@ -1,0 +1,69 @@
+gomod:
+  proxy: true
+
+report_sizes: true
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - windows
+      - linux
+      - freebsd
+      - netbsd
+      - openbsd
+      - solaris
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/LeSuisse/vault-gpg-plugin/version.GitCommit={{.Commit}}
+    hooks:
+      post:
+        - cmd: sh -c 'sha256sum  "{{ base .Path }}" > "{{ base .Path }}".sha256sum'
+          dir: "{{ dir .Path }}"
+sboms:
+  - artifacts: binary
+archives:
+  - format: zip
+    name_template: "{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+      - docs/*
+      - src: "{{ .ArtifactPath }}.sha256sum"
+        dst: /
+        strip_parent: true
+checksum:
+  name_template: 'checksums.txt'
+signs:
+  - id: binary-keyless
+    signature: "${artifact}.bundle"
+    cmd: cosign
+    args: ["sign-blob", "--bundle", "${signature}", "--yes", "${artifact}"]
+    artifacts: binary
+  - id: checksum-keyless
+    signature: "${artifact}.bundle"
+    cmd: cosign
+    args: ["sign-blob", "--bundle", "${signature}", "--yes", "${artifact}"]
+    artifacts: checksum
+  - id: sbom-keyless
+    signature: "${artifact}.bundle"
+    cmd: cosign
+    args: ["sign-blob", "--bundle", "${signature}", "--yes", "${artifact}"]
+    artifacts: sbom
+  - id: packages-keyless
+    signature: "${artifact}.bundle"
+    cmd: cosign
+    args: ["sign-blob", "--bundle", "${signature}", "--yes", "${artifact}"]
+    artifacts: package
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+release:
+  draft: true

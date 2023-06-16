@@ -1,0 +1,23 @@
+name: Release
+
+permissions: read-all
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
+      contents: write
+    name: Test release
+    steps:
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+        with:
+          fetch-depth: 0
+      - run: git fetch --force --tags
+      - uses: cachix/install-nix-action@4b933aa7ebcc94a6174cf1364864e957b4910265
+      - run: nix-shell --run 'goreleaser --clean'

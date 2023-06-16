@@ -7,11 +7,10 @@
 
 pkgs.mkShell {
   buildInputs = [
-    pkgs.findutils
-    pkgs.gitMinimal
-    pkgs.zip
     pkgs.go_1_20
-    pkgs.gnupg
-    pkgs.rekor-cli
+    pkgs.gitMinimal
+    pkgs.goreleaser
+    pkgs.syft
+    pkgs.cosign
   ];
 }

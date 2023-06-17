@@ -12,5 +12,6 @@ pkgs.mkShell {
     pkgs.goreleaser
     pkgs.syft
     pkgs.cosign
+    pkgs.golangci-lint
   ];
 }

@@ -2,6 +2,7 @@ package gpg
 
 import (
 	"bytes"
+
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
 )

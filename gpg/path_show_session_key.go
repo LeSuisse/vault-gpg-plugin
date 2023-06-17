@@ -105,7 +105,7 @@ func (b *backend) pathShowSessionKeyWrite(ctx context.Context, req *logical.Requ
 		}
 		switch p := p.(type) {
 		case *packet.EncryptedKey:
-			encryptedKey := packet.EncryptedKey(*p)
+			encryptedKey := *p
 			keys := keyring.KeysById(encryptedKey.KeyId)
 			for _, key := range keys {
 				encryptedKey.Decrypt(key.PrivateKey, nil)

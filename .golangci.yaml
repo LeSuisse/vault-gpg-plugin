@@ -1,0 +1,19 @@
+linters:
+  disable-all: true
+  enable:
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - gosec
+    - stylecheck
+    - goimports
+    - gofmt
+    - tparallel
+    - prealloc
+    - misspell
+    - unconvert
+    - unparam
+    - whitespace

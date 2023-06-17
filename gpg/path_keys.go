@@ -5,9 +5,10 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"github.com/hashicorp/vault/sdk/helper/locksutil"
 	"io"
 	"strings"
+
+	"github.com/hashicorp/vault/sdk/helper/locksutil"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/packet"

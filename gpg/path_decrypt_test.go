@@ -2,8 +2,9 @@ package gpg
 
 import (
 	"context"
-	"github.com/hashicorp/vault/sdk/logical"
 	"testing"
+
+	"github.com/hashicorp/vault/sdk/logical"
 )
 
 func TestGPG_Decrypt(t *testing.T) {
@@ -131,7 +132,6 @@ func TestGPG_DecryptError(t *testing.T) {
 
 	// Message is signed but signature does not match the signer key
 	decryptMustFail("test", encryptedAndSignedMessageASCIIArmored, "ascii-armor", privateDecryptKey)
-
 }
 
 const privateDecryptKey = `-----BEGIN PGP PRIVATE KEY BLOCK-----

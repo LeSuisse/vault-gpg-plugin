@@ -43,26 +43,11 @@ archives:
 checksum:
   name_template: 'checksums.txt'
 signs:
-  - id: binary-keyless
+  - id: cosign-keyless
     signature: "${artifact}.bundle"
     cmd: cosign
     args: ["sign-blob", "--bundle", "${signature}", "--yes", "${artifact}"]
-    artifacts: binary
-  - id: checksum-keyless
-    signature: "${artifact}.bundle"
-    cmd: cosign
-    args: ["sign-blob", "--bundle", "${signature}", "--yes", "${artifact}"]
-    artifacts: checksum
-  - id: sbom-keyless
-    signature: "${artifact}.bundle"
-    cmd: cosign
-    args: ["sign-blob", "--bundle", "${signature}", "--yes", "${artifact}"]
-    artifacts: sbom
-  - id: packages-keyless
-    signature: "${artifact}.bundle"
-    cmd: cosign
-    args: ["sign-blob", "--bundle", "${signature}", "--yes", "${artifact}"]
-    artifacts: package
+    artifacts: all
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 release:

@@ -133,7 +133,6 @@ func TestGPG_ShowSessionKeyError(t *testing.T) {
 
 	// Signer key is not properly ASCII-armored
 	showSessionKeyMustFail("test", encryptedSessionMessageASCIIArmored, "ascii-armor", "Signer key is not ASCII armored")
-
 }
 
 const privateSessionDecryptKey = `-----BEGIN PGP PRIVATE KEY BLOCK-----

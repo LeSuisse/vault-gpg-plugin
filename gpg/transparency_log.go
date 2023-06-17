@@ -2,6 +2,7 @@ package gpg
 
 import (
 	"context"
+
 	"github.com/sigstore/rekor/pkg/client"
 	"github.com/sigstore/rekor/pkg/generated/client/entries"
 	"github.com/sigstore/rekor/pkg/types"

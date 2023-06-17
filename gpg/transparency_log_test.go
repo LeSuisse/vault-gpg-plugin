@@ -2,8 +2,9 @@ package gpg
 
 import (
 	"context"
-	"github.com/sigstore/rekor/pkg/generated/client/entries"
 	"testing"
+
+	"github.com/sigstore/rekor/pkg/generated/client/entries"
 )
 
 type ClientMock struct {

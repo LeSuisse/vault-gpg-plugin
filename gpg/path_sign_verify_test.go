@@ -2,10 +2,11 @@ package gpg
 
 import (
 	"context"
-	"github.com/hashicorp/vault/sdk/logical"
-	"github.com/sigstore/rekor/pkg/generated/client/entries"
 	"reflect"
 	"testing"
+
+	"github.com/hashicorp/vault/sdk/logical"
+	"github.com/sigstore/rekor/pkg/generated/client/entries"
 )
 
 func TestGPG_SignVerify(t *testing.T) {
@@ -15,7 +16,6 @@ func TestGPG_SignVerify(t *testing.T) {
 	b = Backend()
 	mockClient := &ClientMock{
 		CreateLogEntryFunc: func(rekorServerUrl string, params *entries.CreateLogEntryParams) (*entries.CreateLogEntryCreated, error) {
-
 			return &entries.CreateLogEntryCreated{
 				ETag:     "some-uuid",
 				Location: "/path/to/entry",

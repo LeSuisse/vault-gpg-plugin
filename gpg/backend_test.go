@@ -3,11 +3,12 @@ package gpg
 import (
 	"context"
 	"encoding/hex"
-	"github.com/ProtonMail/go-crypto/openpgp"
-	"github.com/hashicorp/vault/sdk/logical"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/hashicorp/vault/sdk/logical"
 )
 
 func TestBackend_CRUD(t *testing.T) {
@@ -28,6 +29,7 @@ func TestBackend_CRUD(t *testing.T) {
 	testAccStepDeleteKey(t, b, storage, "test")
 	testAccStepListKey(t, b, storage, []string{"test2", "test3"})
 	testAccStepReadKey(t, b, storage, "test", nil)
+	testAccStepReadKey(t, b, storage, "test2", keyData)
 }
 
 func TestBackend_CRUDImportedKey(t *testing.T) {

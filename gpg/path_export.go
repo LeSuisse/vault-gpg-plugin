@@ -3,6 +3,7 @@ package gpg
 import (
 	"bytes"
 	"context"
+
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
 	"github.com/hashicorp/vault/sdk/framework"

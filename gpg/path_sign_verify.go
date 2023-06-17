@@ -6,12 +6,13 @@ import (
 	"crypto"
 	"encoding/base64"
 	"fmt"
+	"strings"
+
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
-	"strings"
 )
 
 func pathSign(b *backend) *framework.Path {

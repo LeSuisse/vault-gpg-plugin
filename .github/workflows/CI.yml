@@ -30,17 +30,8 @@ jobs:
     name: Run static analysis and linting
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
-      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753
-        with:
-          go-version: '^1.20.0'
-      - name: Go fmt
-        run: diff -u <(echo -n) <(gofmt -d -s *.go gpg/)
-      - name: Go vet
-        run: env GO111MODULE=on go vet ./...
-      - name: Staticcheck
-        run: go run honnef.co/go/tools/cmd/staticcheck -checks 'all,-ST1000' ./...
-      - name: Gosec
-        run: go run github.com/securego/gosec/cmd/gosec -exclude=G104 ./...
+      - uses: cachix/install-nix-action@4b933aa7ebcc94a6174cf1364864e957b4910265
+      - run: nix-shell --run 'golangci-lint run --timeout=5m'
   test_release:
     runs-on: ubuntu-22.04
     permissions:

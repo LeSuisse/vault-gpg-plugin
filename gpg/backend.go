@@ -2,6 +2,7 @@ package gpg
 
 import (
 	"context"
+
 	"github.com/hashicorp/vault/sdk/helper/locksutil"
 
 	"github.com/hashicorp/vault/sdk/framework"

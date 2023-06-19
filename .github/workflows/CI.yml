@@ -30,7 +30,7 @@ jobs:
     name: Run static analysis and linting
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
-      - uses: cachix/install-nix-action@4b933aa7ebcc94a6174cf1364864e957b4910265
+      - uses: cachix/install-nix-action@6ed004b9ccb68dbc28e7c85bee15fa93dbd214ac
       - run: nix-shell --run 'golangci-lint run --timeout=5m'
   test_release:
     runs-on: ubuntu-22.04
@@ -40,7 +40,7 @@ jobs:
     name: Test release
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
-      - uses: cachix/install-nix-action@4b933aa7ebcc94a6174cf1364864e957b4910265
+      - uses: cachix/install-nix-action@6ed004b9ccb68dbc28e7c85bee15fa93dbd214ac
       - run: nix-shell --run 'goreleaser --snapshot --clean'
       - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce
         with:

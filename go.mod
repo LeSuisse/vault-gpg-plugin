@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/ProtonMail/go-crypto v1.0.0
-	github.com/hashicorp/vault/api v1.12.2
+	github.com/hashicorp/vault/api v1.13.0
 	github.com/hashicorp/vault/sdk v0.12.0
 	github.com/sigstore/rekor v1.3.4
 )
@@ -27,7 +27,7 @@ require (
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/frankban/quicktest v1.14.3 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
-	github.com/go-jose/go-jose/v3 v3.0.3 // indirect
+	github.com/go-jose/go-jose/v4 v4.0.1 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/analysis v0.21.4 // indirect

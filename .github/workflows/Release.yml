@@ -19,7 +19,7 @@ jobs:
         with:
           fetch-depth: 0
       - run: git fetch --force --tags
-      - uses: cachix/install-nix-action@8887e596b4ee1134dae06b98d573bd674693f47c
+      - uses: cachix/install-nix-action@ba0dd844c9180cbf77aa72a116d6fbc515d0e87b
       - run: nix-shell --run 'goreleaser --clean'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

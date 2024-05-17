@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: Tests (${{ matrix.os }})
     steps:
-      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
         with:
           go-version: '^1.21.0'
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-22.04
     name: Run static analysis and linting
     steps:
-      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: cachix/install-nix-action@ba0dd844c9180cbf77aa72a116d6fbc515d0e87b
       - run: nix-shell --run 'golangci-lint run --timeout=5m'
   test_release:
@@ -39,7 +39,7 @@ jobs:
       contents: read
     name: Test release
     steps:
-      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: cachix/install-nix-action@ba0dd844c9180cbf77aa72a116d6fbc515d0e87b
       - run: nix-shell --run 'goreleaser --snapshot --clean'
       - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808

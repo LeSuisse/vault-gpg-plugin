@@ -42,7 +42,7 @@ jobs:
       - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
       - uses: cachix/install-nix-action@3715ab1a11cac9e991980d7b4a28d80c7ebdd8f9
       - run: nix-shell --run 'goreleaser --snapshot --clean'
-      - uses: actions/upload-artifact@604373da6381bf24206979c74d06a550515601b9
+      - uses: actions/upload-artifact@84480863f228bb9747b473957fcc9e309aa96097
         with:
           name: test-release-dist
           path: dist/**/*

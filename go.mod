@@ -3,7 +3,7 @@ module github.com/LeSuisse/vault-gpg-plugin
 go 1.21
 
 require (
-	github.com/ProtonMail/go-crypto v1.1.2
+	github.com/ProtonMail/go-crypto v1.1.3
 	github.com/hashicorp/vault/api v1.12.2
 	github.com/hashicorp/vault/sdk v0.12.0
 	github.com/sigstore/rekor v1.3.4

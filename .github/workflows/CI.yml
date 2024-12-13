@@ -12,7 +12,7 @@ jobs:
   tests:
     strategy:
       matrix:
-        os: ["windows-2022", "ubuntu-22.04", "macos-12"]
+        os: ["windows-2022", "ubuntu-24.04", "macos-15"]
     runs-on: ${{ matrix.os }}
     name: Tests (${{ matrix.os }})
     steps:
@@ -26,14 +26,14 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
   static_analysis:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     name: Run static analysis and linting
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: cachix/install-nix-action@3715ab1a11cac9e991980d7b4a28d80c7ebdd8f9
       - run: nix-shell --run 'golangci-lint run --timeout=5m'
   test_release:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       id-token: write
       contents: read

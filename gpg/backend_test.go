@@ -207,6 +207,7 @@ func getTestBackend(t *testing.T) (logical.Backend, logical.Storage) {
 	return b, config.StorageView
 }
 
+//nolint:gosec
 const gpgKey = `-----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lQOYBFmZfJIBCACx2NgAf4rLLx2QKo444ATs3ewJICdy/cYhETxcn5wewdrxQayJ

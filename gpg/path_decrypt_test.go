@@ -134,6 +134,7 @@ func TestGPG_DecryptError(t *testing.T) {
 	decryptMustFail("test", encryptedAndSignedMessageASCIIArmored, "ascii-armor", privateDecryptKey)
 }
 
+//nolint:gosec
 const privateDecryptKey = `-----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lQEVBFmbQ68BCADeLSajk7PSagzGt4rs0Dy4LRD22qn9g2J0V/eG0BEqGPup3xYi

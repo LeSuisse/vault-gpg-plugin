@@ -1,13 +1,13 @@
 { pkgs ? import (
   fetchTarball {
-    url = "https://github.com/NixOS/nixpkgs/archive/01441e14af5e29c9d27ace398e6dd0b293e25a54.tar.gz";
-    sha256 = "sha256:0yvkamjbk3aj4lvhm6vdgdk4b2j0xdv3gx9n4p7wfky52j2529dy";
+    url = "https://github.com/NixOS/nixpkgs/archive/69b9a8c860bdbb977adfa9c5e817ccb717884182.tar.gz";
+    sha256 = "sha256:12ljkkjg3gicamvryxr2bnfcdb05qdlbc5wv4lcw9sxamszp4cp7";
   }
 ) {} }:
 
 pkgs.mkShell {
   buildInputs = [
-    pkgs.go_1_21
+    pkgs.go_1_23
     pkgs.gitMinimal
     pkgs.goreleaser
     pkgs.syft

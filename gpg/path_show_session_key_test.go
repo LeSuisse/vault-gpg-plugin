@@ -135,6 +135,7 @@ func TestGPG_ShowSessionKeyError(t *testing.T) {
 	showSessionKeyMustFail("test", encryptedSessionMessageASCIIArmored, "ascii-armor", "Signer key is not ASCII armored")
 }
 
+//nolint:gosec
 const privateSessionDecryptKey = `-----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lQOYBFmbQ68BCADeLSajk7PSagzGt4rs0Dy4LRD22qn9g2J0V/eG0BEqGPup3xYi

@@ -110,7 +110,7 @@ func (b *backend) pathShowSessionKeyWrite(ctx context.Context, req *logical.Requ
 			for _, key := range keys {
 				encryptedKey.Decrypt(key.PrivateKey, nil)
 
-				if encryptedKey.Key != nil && len(encryptedKey.Key) > 0 {
+				if len(encryptedKey.Key) > 0 {
 					sessionKey = fmt.Sprintf("%d:%s", encryptedKey.CipherFunc, strings.ToUpper(hex.EncodeToString(encryptedKey.Key)))
 					return &logical.Response{
 						Data: map[string]interface{}{

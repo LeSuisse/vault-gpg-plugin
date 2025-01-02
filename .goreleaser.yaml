@@ -1,5 +1,10 @@
+version: 2
+
 gomod:
   proxy: true
+
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
 
 report_sizes: true
 
@@ -49,6 +54,6 @@ signs:
     args: ["sign-blob", "--bundle", "${signature}", "--yes", "${artifact}"]
     artifacts: all
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 release:
   draft: true

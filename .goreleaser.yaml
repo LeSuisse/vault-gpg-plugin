@@ -36,7 +36,7 @@ builds:
 sboms:
   - artifacts: binary
 archives:
-  - format: zip
+  - formats: [ "zip" ]
     name_template: "{{ .Os }}_{{ .Arch }}"
     files:
       - README.md

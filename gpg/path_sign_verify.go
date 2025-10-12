@@ -145,22 +145,6 @@ func (b *backend) pathSignWrite(ctx context.Context, req *logical.Request, data 
 		return nil, err
 	}
 
-	var outputLogEntry map[string]string = nil
-	if entry.TransparencyLogAddress != "" {
-		publicKey, err := extractPublicKey(entity)
-		if err != nil {
-			return nil, err
-		}
-		tlogEntry, err := b.uploadToTransparencyLog(ctx, entry.TransparencyLogAddress, input, armoredSignatureBuffer.Bytes(), publicKey)
-		if err != nil {
-			return logical.ErrorResponse("cannot publish the signature to the transparency log"), err
-		}
-		outputLogEntry = map[string]string{
-			"uuid":    tlogEntry.ETag,
-			"address": fmt.Sprintf("%v%v", entry.TransparencyLogAddress, tlogEntry.Location),
-		}
-	}
-
 	var outputSignature bytes.Buffer
 	switch format {
 	case "ascii-armor":
@@ -190,7 +174,6 @@ func (b *backend) pathSignWrite(ctx context.Context, req *logical.Request, data 
 	return &logical.Response{
 		Data: map[string]interface{}{
 			"signature": outputSignature.String(),
-			"log_entry": outputLogEntry,
 		},
 	}, nil
 }

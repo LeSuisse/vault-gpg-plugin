@@ -2,11 +2,9 @@ package gpg
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/hashicorp/vault/sdk/logical"
-	"github.com/sigstore/rekor/pkg/generated/client/entries"
 )
 
 func TestGPG_SignVerify(t *testing.T) {
@@ -14,15 +12,6 @@ func TestGPG_SignVerify(t *testing.T) {
 	storage := &logical.InmemStorage{}
 
 	b = Backend()
-	mockClient := &ClientMock{
-		CreateLogEntryFunc: func(rekorServerUrl string, params *entries.CreateLogEntryParams) (*entries.CreateLogEntryCreated, error) {
-			return &entries.CreateLogEntryCreated{
-				ETag:     "some-uuid",
-				Location: "/path/to/entry",
-			}, nil
-		},
-	}
-	b.transparencyLogClient = mockClient
 
 	req := &logical.Request{
 		Storage:   storage,
@@ -38,9 +27,8 @@ func TestGPG_SignVerify(t *testing.T) {
 		Operation: logical.UpdateOperation,
 		Path:      "keys/test2",
 		Data: map[string]interface{}{
-			"real_name":                "Vault GPG test2",
-			"email":                    "vault@example.com",
-			"transparency_log_address": "https://rekor.example.com",
+			"real_name": "Vault GPG test2",
+			"email":     "vault@example.com",
 		},
 	}
 	req3 := &logical.Request{
@@ -48,9 +36,8 @@ func TestGPG_SignVerify(t *testing.T) {
 		Operation: logical.UpdateOperation,
 		Path:      "keys/test3",
 		Data: map[string]interface{}{
-			"real_name":                "Vault GPG test3",
-			"email":                    "vault@example.com",
-			"transparency_log_address": "/broken_address",
+			"real_name": "Vault GPG test3",
+			"email":     "vault@example.com",
 		},
 	}
 	_, err := b.HandleRequest(context.Background(), req)
@@ -66,7 +53,7 @@ func TestGPG_SignVerify(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	signRequest := func(req *logical.Request, keyName string, errExpected bool, postpath string) (string, map[string]string) {
+	signRequest := func(req *logical.Request, keyName string, errExpected bool, postpath string) string {
 		req.Path = "sign/" + keyName + postpath
 		response, err := b.HandleRequest(context.Background(), req)
 		if err != nil && !errExpected {
@@ -79,7 +66,7 @@ func TestGPG_SignVerify(t *testing.T) {
 			if !response.IsError() {
 				t.Fatalf("expected error response: %#v", *response)
 			}
-			return "", map[string]string{}
+			return ""
 		}
 		if response.IsError() {
 			t.Fatalf("not expected error response: %#v", *response)
@@ -88,11 +75,7 @@ func TestGPG_SignVerify(t *testing.T) {
 		if !ok {
 			t.Fatalf("no signature found in response data: %#v", response.Data)
 		}
-		logEntry, ok := response.Data["log_entry"]
-		if !ok {
-			t.Fatalf("no log_entry found in response data: %#v", response.Data)
-		}
-		return signature.(string), logEntry.(map[string]string)
+		return signature.(string)
 	}
 
 	verifyRequest := func(req *logical.Request, keyName string, errExpected, validSignature bool, signature string) {
@@ -131,28 +114,25 @@ func TestGPG_SignVerify(t *testing.T) {
 	}
 
 	// Test defaults
-	signature, logEntry := signRequest(req, "test", false, "")
-	if logEntry != nil {
-		t.Fatalf("expected no log entry %#v %#v", *req, logEntry)
-	}
+	signature := signRequest(req, "test", false, "")
 	verifyRequest(req, "test", false, true, signature)
 	verifyRequest(req, "test2", false, false, signature)
 
 	// Test algorithm selection in path
-	signature, _ = signRequest(req, "test", false, "/sha2-224")
+	signature = signRequest(req, "test", false, "/sha2-224")
 	verifyRequest(req, "test", false, true, signature)
 
 	// Test algorithm selection in the data
 	req.Data["algorithm"] = "sha2-224"
-	signature, _ = signRequest(req, "test", false, "")
+	signature = signRequest(req, "test", false, "")
 	verifyRequest(req, "test", false, true, signature)
 
 	req.Data["algorithm"] = "sha2-384"
-	signature, _ = signRequest(req, "test", false, "")
+	signature = signRequest(req, "test", false, "")
 	verifyRequest(req, "test", false, true, signature)
 
 	req.Data["algorithm"] = "sha2-512"
-	signature, _ = signRequest(req, "test", false, "")
+	signature = signRequest(req, "test", false, "")
 	verifyRequest(req, "test", false, true, signature)
 
 	req.Data["algorithm"] = "notexisting"
@@ -161,23 +141,12 @@ func TestGPG_SignVerify(t *testing.T) {
 
 	// Test format selection
 	req.Data["format"] = "ascii-armor"
-	signature, _ = signRequest(req, "test", false, "")
+	signature = signRequest(req, "test", false, "")
 	verifyRequest(req, "test", false, true, signature)
-
-	// Test submission log entry
-	req.Data["format"] = "base64"
-	_, logEntry = signRequest(req, "test2", false, "")
-	if !reflect.DeepEqual(logEntry, map[string]string{"uuid": "some-uuid", "address": "https://rekor.example.com/path/to/entry"}) {
-		t.Fatalf("expected a specific log entry %#v %#v", *req, logEntry)
-	}
-
-	// Test error when signature cannot be published to the transparency log
-	b.transparencyLogClient = &RekorClient{}
-	signRequest(req, "test3", true, "")
 
 	// Test validation format mismatch
 	req.Data["format"] = "ascii-armor"
-	signature, _ = signRequest(req, "test", false, "")
+	signature = signRequest(req, "test", false, "")
 	req.Data["format"] = "base64"
 	verifyRequest(req, "test", false, false, signature)
 

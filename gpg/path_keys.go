@@ -62,10 +62,6 @@ func pathKeys(b *backend) *framework.Path {
 				Type:        framework.TypeBool,
 				Description: "Enables the key to be exportable.",
 			},
-			"transparency_log_address": {
-				Type:        framework.TypeString,
-				Description: "Address of a Rekor transparency log to publish the signatures.",
-			},
 			"generate": {
 				Type:        framework.TypeBool,
 				Default:     true,
@@ -176,10 +172,9 @@ func (b *backend) pathKeyRead(ctx context.Context, req *logical.Request, data *f
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"fingerprint":              hex.EncodeToString(entity.PrimaryKey.Fingerprint[:]),
-			"public_key":               string(buf),
-			"exportable":               entry.Exportable,
-			"transparency_log_address": entry.TransparencyLogAddress,
+			"fingerprint": hex.EncodeToString(entity.PrimaryKey.Fingerprint[:]),
+			"public_key":  string(buf),
+			"exportable":  entry.Exportable,
 		},
 	}, nil
 }
@@ -191,7 +186,6 @@ func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data 
 	comment := data.Get("comment").(string)
 	keyBits := data.Get("key_bits").(int)
 	exportable := data.Get("exportable").(bool)
-	transparencyLogAddress := data.Get("transparency_log_address").(string)
 	generate := data.Get("generate").(bool)
 	key := data.Get("key").(string)
 
@@ -239,9 +233,8 @@ func (b *backend) pathKeyCreate(ctx context.Context, req *logical.Request, data 
 	}
 
 	return nil, b.storeKeyEntry(ctx, req.Storage, name, &keyEntry{
-		SerializedKey:          buf.Bytes(),
-		Exportable:             exportable,
-		TransparencyLogAddress: transparencyLogAddress,
+		SerializedKey: buf.Bytes(),
+		Exportable:    exportable,
 	})
 }
 
@@ -277,9 +270,8 @@ func (b *backend) pathKeyList(
 }
 
 type keyEntry struct {
-	SerializedKey          []byte
-	Exportable             bool
-	TransparencyLogAddress string
+	SerializedKey []byte
+	Exportable    bool
 }
 
 const pathPolicyHelpSyn = "Managed named GPG keys"

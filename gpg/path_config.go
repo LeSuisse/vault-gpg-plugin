@@ -17,11 +17,6 @@ func pathConfig(b *backend) *framework.Path {
 				Type:        framework.TypeString,
 				Description: "Name of the key",
 			},
-
-			"transparency_log_address": {
-				Type:        framework.TypeString,
-				Description: "Address of a Rekor transparency log to publish the signatures.",
-			},
 		},
 		Operations: map[logical.Operation]framework.OperationHandler{
 			logical.UpdateOperation: &framework.PathOperation{
@@ -48,18 +43,7 @@ func (b *backend) pathConfigWrite(ctx context.Context, req *logical.Request, dat
 		return logical.ErrorResponse(fmt.Sprintf("no existing key named %s could be found", name)), logical.ErrInvalidRequest
 	}
 
-	persistNeeded := false
-	logAddress, ok := data.GetOk("transparency_log_address")
-	if ok {
-		entry.TransparencyLogAddress = logAddress.(string)
-		persistNeeded = true
-	}
-
-	if !persistNeeded {
-		return nil, nil
-	}
-
-	return &logical.Response{}, b.storeKeyEntry(ctx, req.Storage, name, entry)
+	return nil, nil
 }
 
 const pathConfigHelpSyn = "Configure a named GPG key"

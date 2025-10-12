@@ -42,14 +42,12 @@ func Backend() *backend {
 		BackendType: logical.TypeLogical,
 	}
 	b.keyLocks = locksutil.CreateLocks()
-	b.transparencyLogClient = &RekorClient{}
 	return &b
 }
 
 type backend struct {
 	*framework.Backend
-	keyLocks              []*locksutil.LockEntry
-	transparencyLogClient TransparencyLogClient
+	keyLocks []*locksutil.LockEntry
 }
 
 const backendHelp = `

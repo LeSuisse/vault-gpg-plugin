@@ -4,7 +4,7 @@ go 1.25.1
 
 require (
 	github.com/ProtonMail/go-crypto v1.4.1
-	github.com/hashicorp/vault/api v1.22.0
+	github.com/hashicorp/vault/api v1.23.0
 	github.com/hashicorp/vault/sdk v0.24.0
 )
 

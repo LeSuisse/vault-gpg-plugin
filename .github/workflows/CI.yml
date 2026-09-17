@@ -22,7 +22,7 @@ jobs:
           go-version: '^1.23.0'
       - name: Tests
         run: "go test -race -coverprofile='coverage.txt' -covermode=atomic -v ./gpg/"
-      - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+      - uses: codecov/codecov-action@0b35c9ecc4f0529d0eb674914510c22f85b196b4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
   static_analysis:
